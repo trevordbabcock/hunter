@@ -158,12 +158,9 @@ def print_map(map)
   end
 end
 
-seed = 1235#rand(1000000000)
-srand(seed)
+
+seed = ARGV[0] || rand(1000000000)
+srand(seed.to_i)
 map = generate_map(64, 64)
 print_map(map)
 puts "Seed: #{seed}"
-
-# 37.times do |n|
-#   print "\033[#{n}m#{n}#{n}#{n}\033[00m"
-# end
