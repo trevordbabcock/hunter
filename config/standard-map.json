@@ -1,0 +1,22 @@
+{
+    "land": {
+        "max-likelihood": 100,
+        "base-percentage": 8,
+        "orthogonal-adjacency-add-percentage": 26,
+        "diagonal-adjacency-add-percentage": 18
+    },
+    "mountain": {
+        "max-likelihood": 100,
+        "base-percentage": 2,
+        "orthogonal-adjacency-add-percentage": 21,
+        "diagonal-adjacency-add-percentage": 18
+    },
+    "forest": {
+        "max-likelihood": 100,
+        "base-percentage": 5,
+        "orthogonal-adjacency-add-percentage": 40,
+        "diagonal-adjacency-add-percentage": 12,
+        "mountain-adjacency-add-percentage": 5,
+        "water-adjacency-subtract-percentage": 10
+    }
+}
