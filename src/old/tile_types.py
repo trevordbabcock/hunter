@@ -21,6 +21,8 @@ tile_dt = np.dtype(
     ]
 )
 
+# SHROUD represents unexplored, unseen tiles
+SHROUD = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=graphic_dt)
 
 def new_tile(
     *,  # Enforce the use of keywords, so that parameter order doesn't matter.
@@ -33,9 +35,7 @@ def new_tile(
     return np.array((walkable, transparent, dark, light), dtype=tile_dt)
 
 
-# SHROUD represents unexplored, unseen tiles
-SHROUD = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=graphic_dt)
-
+# theirs
 floor = new_tile(
     walkable=True,
     transparent=True,
@@ -48,3 +48,9 @@ wall = new_tile(
     dark=(ord(" "), (255, 255, 255), (0, 0, 100)),
     light=(ord(" "), (255, 255, 255), (130, 110, 50)),
 )
+
+# mine
+# ground = new_tile(walkable=True, transparent=False, dark=(ord("G"), (255, 255, 255), (0, 0, 0)))
+# water = new_tile(walkable=True, transparent=False, dark=(ord("~"), (255, 255, 255), (0, 0, 0)))
+# forest = new_tile(walkable=True, transparent=False, dark=(ord("F"), (255, 255, 255), (0, 0, 0)))
+# mountain = new_tile(walkable=True, transparent=False, dark=(ord("^"), (255, 255, 255), (0, 0, 0)))
