@@ -1,0 +1,23 @@
+{
+    "iteration_type": "shuffle",
+    "land": {
+        "max-likelihood": 100,
+        "base-percentage": 20,
+        "orthogonal-adjacency-add-percentage": 100,
+        "diagonal-adjacency-add-percentage": 100
+    },
+    "mountain": {
+        "max-likelihood": 100,
+        "base-percentage": 2,
+        "orthogonal-adjacency-add-percentage": 50,
+        "diagonal-adjacency-add-percentage": 50
+    },
+    "forest": {
+        "max-likelihood": 100,
+        "base-percentage": 5,
+        "orthogonal-adjacency-add-percentage": 60,
+        "diagonal-adjacency-add-percentage": 60,
+        "mountain-adjacency-add-percentage": 20,
+        "water-adjacency-subtract-percentage": 20
+    }
+}
