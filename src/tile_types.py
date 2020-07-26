@@ -36,15 +36,27 @@ def new_tile(
 # SHROUD represents unexplored, unseen tiles
 SHROUD = np.array((ord(" "), (255, 255, 255), (0, 0, 0)), dtype=graphic_dt)
 
-floor = new_tile(
+ground = new_tile(
     walkable=True,
     transparent=True,
-    dark=(ord(" "), (255, 255, 255), (50, 50, 150)),
-    light=(ord(" "), (255, 255, 255), (200, 180, 50)),
+    dark=(ord("G"), (255, 255, 255), (156, 222, 41)),
+    light=(ord("G"), (255, 255, 255), (156, 222, 41)),
 )
-wall = new_tile(
+water = new_tile(
     walkable=False,
-    transparent=False,
-    dark=(ord(" "), (255, 255, 255), (0, 0, 100)),
-    light=(ord(" "), (255, 255, 255), (130, 110, 50)),
+    transparent=True,
+    dark=(ord("~"), (255, 255, 255), (164, 118, 255)),
+    light=(ord("~"), (255, 255, 255), (164, 118, 255)),
+)
+forest = new_tile(
+    walkable=False,
+    transparent=True,
+    dark=(ord("F"), (255, 255, 255), (253, 140, 29)),
+    light=(ord("F"), (255, 255, 255), (253, 140, 29)),
+)
+mountain = new_tile(
+    walkable=False,
+    transparent=True,
+    dark=(ord("^"), (255, 255, 255), (248, 37, 103)),
+    light=(ord("^"), (255, 255, 255), (248, 37, 103)),
 )

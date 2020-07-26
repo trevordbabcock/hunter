@@ -20,7 +20,7 @@ class GameMap:
         self.engine = engine
         self.width, self.height = width, height
         self.entities = set(entities)
-        self.tiles = np.full((width, height), fill_value=tile_types.wall, order="F")
+        self.tiles = np.full((width, height), fill_value=tile_types.ground, order="F")
 
         self.visible = np.full(
             (width, height), fill_value=False, order="F"
@@ -71,7 +71,7 @@ class GameMap:
         Otherwise, the default is "SHROUD".
         """
         console.tiles_rgb[0 : self.width, 0 : self.height] = np.select(
-            condlist=[self.visible, self.explored],
+            condlist=[True, True],
             choicelist=[self.tiles["light"], self.tiles["dark"]],
             default=tile_types.SHROUD,
         )
@@ -81,7 +81,7 @@ class GameMap:
         )
 
         for entity in entities_sorted_for_rendering:
-            if self.visible[entity.x, entity.y]:
+            if True: #self.visible[entity.x, entity.y]:
                 console.print(
                     x=entity.x, y=entity.y, string=entity.char, fg=entity.color
                 )

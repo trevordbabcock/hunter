@@ -3,8 +3,8 @@ from components.fighter import Fighter
 from entity import Actor
 
 player = Actor(
-    char="@",
-    color=(255, 255, 255),
+    char="H",
+    color=(0, 0, 0),
     name="Player",
     ai_cls=HostileEnemy,
     fighter=Fighter(hp=30, defense=2, power=5),
