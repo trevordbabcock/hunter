@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-import copy
-
 import tcod
 
-import color
+import colors
 from engine import Engine
-import entity_factories
-from procgen import generate_map
+from entity import Entity
+from game_map import GameMap
+from input_handlers import EventHandler
 
 
 def main() -> None:
@@ -20,20 +19,14 @@ def main() -> None:
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
 
-    player = copy.deepcopy(entity_factories.player)
+    event_handler = EventHandler()
 
-    engine = Engine(player=player)
+    player = Entity(int(map_width / 2), int(map_height / 2), "H", colors.white(), colors.dark_gray())
+    entities = {player}
 
-    engine.game_map = generate_map(
-        map_width=map_width,
-        map_height=map_height,
-        engine=engine,
-    )
-    engine.update_fov()
+    game_map = GameMap(map_width, map_height)
 
-    engine.message_log.add_message(
-        "Hello and welcome, adventurer, to yet another dungeon!", color.welcome_text
-    )
+    engine = Engine(entities=entities, event_handler=event_handler, game_map=game_map, player=player)
 
     with tcod.context.new_terminal(
         screen_width,
@@ -44,11 +37,11 @@ def main() -> None:
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
-            root_console.clear()
-            engine.event_handler.on_render(console=root_console)
-            context.present(root_console)
+            engine.render(console=root_console, context=context)
 
-            engine.event_handler.handle_events(context)
+            events = tcod.event.wait()
+
+            engine.handle_events(events)
 
 
 if __name__ == "__main__":
