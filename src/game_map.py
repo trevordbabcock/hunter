@@ -15,7 +15,7 @@ class GameMap:
     def __init__(self, width: int, height: int):
         self.width, self.height = width, height
         self.tiles = np.full((width, height), fill_value=tile_types.ground, order="F")
-        self.load_map_from_file('resources/maps/basic_map.txt')
+        self.load_map_from_file('resources/maps/large_map.txt')
 
     def load_map_from_file(self, filepath):
         with open(filepath) as file:
@@ -27,7 +27,7 @@ class GameMap:
 
                 for cell in cells:
                     if cell != '':
-                        self.tiles[y, x] = tile_type_map[cell.strip()]
+                        self.tiles[x, y] = tile_type_map[cell.strip()]
                         x = x + 1
 
                 line = file.readline()

@@ -12,8 +12,8 @@ def main() -> None:
     screen_width = 80
     screen_height = 50
 
-    map_width = 32
-    map_height = 32
+    map_width = 80
+    map_height = 50
 
     tileset = tcod.tileset.load_tilesheet(
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
@@ -32,7 +32,7 @@ def main() -> None:
         screen_width,
         screen_height,
         tileset=tileset,
-        title="Yet Another Roguelike Tutorial",
+        title="Hunter",
         vsync=True,
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")

@@ -186,7 +186,7 @@ def get_iteration_order(type, grid_height, grid_width)
 
   grid_height.times do |n|
     grid_width.times do |m|
-      coords_list << [n,m]
+      coords_list << [m,n]
     end
   end
 
