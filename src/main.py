@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import time
 import tcod
 
 import colors
@@ -9,6 +10,7 @@ from input_handlers import EventHandler
 
 
 def main() -> None:
+    seconds_per_frame = 0.016
     screen_width = 80
     screen_height = 50
 
@@ -37,11 +39,20 @@ def main() -> None:
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
+            current = time.time()
             engine.render(console=root_console, context=context)
-
-            events = tcod.event.wait()
-
+            events = tcod.event.get()
             engine.handle_events(events)
+
+            previous = current
+            current = time.time()
+            elapsed_time = current - previous
+            sleep_time = seconds_per_frame - elapsed_time
+            # print("elapsed_time: {}".format(elapsed_time))
+            # print("sleep time: {}".format(sleep_time))
+            if(sleep_time < 0):
+                sleep_time = 0
+            time.sleep(sleep_time)
 
 
 if __name__ == "__main__":
