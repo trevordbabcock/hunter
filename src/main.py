@@ -4,7 +4,7 @@ import tcod
 
 import colors
 from engine import Engine
-from entity import Entity
+import entity
 from game_map import GameMap
 from input_handlers import EventHandler
 
@@ -23,8 +23,9 @@ def main() -> None:
 
     event_handler = EventHandler()
 
-    player = Entity(int(map_width / 2), int(map_height / 2), "H", colors.white(), colors.dark_gray())
-    entities = {player}
+    player = entity.Hunter(int(map_width / 2), int(map_height / 2))
+    rabbit = entity.Rabbit(int(map_width / 2) - 2, int(map_height / 2) - 2)
+    entities = {player, rabbit}
 
     game_map = GameMap(map_width, map_height)
 
@@ -40,9 +41,11 @@ def main() -> None:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
             current = time.time()
-            engine.render(console=root_console, context=context)
+            
             events = tcod.event.get()
             engine.handle_events(events)
+            engine.perform_ai()
+            engine.render(console=root_console, context=context)
 
             previous = current
             current = time.time()

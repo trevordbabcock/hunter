@@ -3,7 +3,7 @@ from typing import Set, Iterable, Any
 from tcod.context import Context
 from tcod.console import Console
 
-from entity import Entity
+from entity import Entity, IntelligentEntity
 from game_map import GameMap
 from input_handlers import EventHandler
 
@@ -23,6 +23,11 @@ class Engine:
                 continue
 
             action.perform(self, self.player)
+
+    def perform_ai(self) -> None:
+        for entity in self.entities:
+            if(isinstance(entity, IntelligentEntity)):
+                entity.ai.perform()
 
     def render(self, console: Console, context: Context) -> None:
         self.game_map.render(console)

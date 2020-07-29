@@ -2,11 +2,14 @@
 def black():
     return (0,0,0)
 
+def dark_gray():
+    return (31,31,31)
+
+def light_gray():
+    return (75,75,75)  
+
 def white():
     return (201, 200, 186)
-
-def dark_gray():
-    return (31,31,31)  
 
 def red():
     return (248, 37, 103)
