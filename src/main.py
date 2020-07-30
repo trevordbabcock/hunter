@@ -6,7 +6,7 @@ import colors
 from engine import Engine
 import entity
 from game_map import GameMap
-from input_handlers import EventHandler
+from input_handlers import InputHandler
 
 
 def main() -> None:
@@ -21,15 +21,17 @@ def main() -> None:
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
 
-    event_handler = EventHandler()
+    input_handler = InputHandler()
 
     player = entity.Hunter(int(map_width / 2), int(map_height / 2))
     rabbit = entity.Rabbit(int(map_width / 2) - 2, int(map_height / 2) - 2)
     entities = {player, rabbit}
+    intelligent_entities = {rabbit}
 
     game_map = GameMap(map_width, map_height)
 
-    engine = Engine(entities=entities, event_handler=event_handler, game_map=game_map, player=player)
+    engine = Engine(entities=entities, input_handler=input_handler, game_map=game_map, player=player)
+    engine.init_event_queue(intelligent_entities)
 
     with tcod.context.new_terminal(
         screen_width,
@@ -42,20 +44,18 @@ def main() -> None:
         while True:
             current = time.time()
             
-            events = tcod.event.get()
-            engine.handle_events(events)
-            engine.perform_ai()
+            inputs = tcod.event.get()
+            engine.handle_inputs(inputs)
+            engine.process_events()
             engine.render(console=root_console, context=context)
 
             previous = current
             current = time.time()
             elapsed_time = current - previous
             sleep_time = seconds_per_frame - elapsed_time
-            # print("elapsed_time: {}".format(elapsed_time))
-            # print("sleep time: {}".format(sleep_time))
-            if(sleep_time < 0):
-                sleep_time = 0
-            time.sleep(sleep_time)
+
+            if(sleep_time > 0):
+                time.sleep(sleep_time)
 
 
 if __name__ == "__main__":

@@ -20,9 +20,13 @@ class Entity:
         self.y += dy
 
 class IntelligentEntity(Entity):
-    def __init__(self, x: int, y: int, char: str, color: Tuple[int, int, int], bg_color: Tuple[int, int, int], ai: ai.AI):
+    def __init__(self, x: int, y: int, char: str, color: Tuple[int, int, int], bg_color: Tuple[int, int, int], ai, update_interval: float):
         super().__init__(x, y, char, color, bg_color)
+        self.update_interval = update_interval
         self.ai = ai
+
+    def requeue(self):
+        return True # TODO only if not dead
 
 class Hunter(Entity):
     def __init__(self, x: int, y: int):
@@ -30,4 +34,4 @@ class Hunter(Entity):
 
 class Rabbit(IntelligentEntity):
     def __init__(self, x: int, y: int):
-        super().__init__(x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self))
+        super().__init__(x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), 1)

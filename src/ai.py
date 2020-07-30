@@ -1,13 +1,10 @@
 from numpy.random import randint
 
 
-class AI:
-    def perform(self, entity):
-        pass # should raise 'not implemented' or whatever
-
 class RabbitAI():
     def __init__(self, rabbit):
         self.rabbit = rabbit
+
     def perform(self):
         num = randint(4)
 
