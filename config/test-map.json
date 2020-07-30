@@ -9,15 +9,15 @@
     "mountain": {
         "max-likelihood": 100,
         "base-percentage": 1,
-        "orthogonal-adjacency-add-percentage": 28,
-        "diagonal-adjacency-add-percentage": 25
+        "orthogonal-adjacency-add-percentage": 31,
+        "diagonal-adjacency-add-percentage": 22
     },
     "forest": {
         "max-likelihood": 100,
-        "base-percentage": 5,
-        "orthogonal-adjacency-add-percentage": 32,
-        "diagonal-adjacency-add-percentage": 11,
-        "mountain-adjacency-add-percentage": 5,
-        "water-adjacency-subtract-percentage": 10
+        "base-percentage": 2,
+        "orthogonal-adjacency-add-percentage": 31,
+        "diagonal-adjacency-add-percentage": 21,
+        "mountain-adjacency-add-percentage": 0,
+        "water-adjacency-subtract-percentage": 0
     }
 }

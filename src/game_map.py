@@ -15,7 +15,7 @@ class GameMap:
     def __init__(self, width: int, height: int):
         self.width, self.height = width, height
         self.tiles = np.full((width, height), fill_value=tile_types.ground, order="F")
-        self.load_map_from_file('resources/maps/large_map.txt')
+        self.load_map_from_file('resources/maps/large_zoomed_map.txt')
 
     def load_map_from_file(self, filepath):
         with open(filepath) as file:
