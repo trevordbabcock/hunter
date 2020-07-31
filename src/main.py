@@ -22,15 +22,17 @@ def main() -> None:
     )
 
     input_handler = InputHandler()
-
-    player = entity.Hunter(int(map_width / 2), int(map_height / 2))
-    rabbit = entity.Rabbit(int(map_width / 2) - 2, int(map_height / 2) - 2)
-    entities = {player, rabbit}
-    intelligent_entities = {rabbit}
-
     game_map = GameMap(map_width, map_height)
+    engine = Engine(entities=[], input_handler=input_handler, game_map=game_map, player=None)
 
-    engine = Engine(entities=entities, input_handler=input_handler, game_map=game_map, player=player)
+    player = entity.Hunter(engine, int(map_width / 2), int(map_height / 2))
+    rabbit = entity.Rabbit(engine, int(map_width / 2) - 2, int(map_height / 2) - 2)
+    entities = [player, rabbit]
+    intelligent_entities = [rabbit]
+
+    engine.player = player
+    engine.entities = entities
+
     engine.init_event_queue(intelligent_entities)
 
     with tcod.context.new_terminal(

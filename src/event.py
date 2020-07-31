@@ -2,6 +2,7 @@ from time import time
 from typing import Callable
 
 from entity import IntelligentEntity
+from game_map import GameMap
 
 
 class Event:
