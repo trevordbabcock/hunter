@@ -28,7 +28,7 @@ class Engine:
             if action is None:
                 continue
 
-            action.perform(self, self.player)
+            action.perform(self.player)
 
     def init_event_queue(self, entities):
         for entity in entities:
