@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import time
 import tcod
 
@@ -26,12 +27,10 @@ def main() -> None:
     engine = Engine(entities=[], input_handler=input_handler, game_map=game_map, player=None)
 
     player = entity.Hunter(engine, int(map_width / 2), int(map_height / 2))
-    rabbit = entity.Rabbit(engine, int(map_width / 2) - 2, int(map_height / 2) - 2)
-    entities = [player, rabbit]
-    intelligent_entities = [rabbit]
+    intelligent_entities = engine.spawn_entities()
 
     engine.player = player
-    engine.entities = entities
+    engine.entities = intelligent_entities
 
     engine.init_event_queue(intelligent_entities)
 
