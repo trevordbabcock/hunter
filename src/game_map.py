@@ -1,21 +1,30 @@
 import numpy as np  # type: ignore
 from tcod.console import Console
 
-import tile_types
+import terrain
 
 
-tile_type_map = {
-    "G": tile_types.ground,
-    "F": tile_types.forest,
-    "^": tile_types.mountain,
-    "~": tile_types.water,
+terrain_map = {
+    "G": terrain.Ground(),
+    "F": terrain.Forest(),
+    "^": terrain.Mountain(),
+    "~": terrain.Water(),
 }
 
 class GameMap:
     def __init__(self, width: int, height: int):
-        self.width, self.height = width, height
-        self.tiles = np.full((width, height), fill_value=tile_types.ground, order="F")
+        self.height = height
+        self.width = width
+        self.tiles = self.init_empty_map()
         self.load_map_from_file('resources/maps/large_zoomed_map.txt')
+
+    def init_empty_map(self):
+        tiles = []
+
+        for i in range(self.height):
+            tiles.append([])
+
+        return tiles
 
     def load_map_from_file(self, filepath):
         with open(filepath) as file:
@@ -27,7 +36,7 @@ class GameMap:
 
                 for cell in cells:
                     if cell != '':
-                        self.tiles[x, y] = tile_type_map[cell.strip()]
+                        self.tiles[y].append(Tile(terrain=terrain_map[cell.strip()]))
                         x = x + 1
 
                 line = file.readline()
@@ -38,4 +47,11 @@ class GameMap:
         return 0 <= x < self.width and 0 <= y < self.height
 
     def render(self, console: Console) -> None:
-        console.tiles_rgb[0:self.width, 0:self.height] = self.tiles["dark"]
+        for y in range(self.height):
+            for x in range(self.width):
+                console.tiles_rgb[x,y] = self.tiles[y][x].terrain.graphic_dt()
+
+class Tile:
+    def __init__(self, terrain):
+        self.terrain = terrain
+        self.entities = []

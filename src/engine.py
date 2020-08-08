@@ -3,10 +3,11 @@ from collections import deque
 from time import time
 from typing import Set, Iterable, Any
 
-from numpy.random import randint
+import numpy as np
 from tcod.context import Context
 from tcod.console import Console
 
+import colors
 from entity import Entity, IntelligentEntity, Rabbit
 from event import Event
 from game_map import GameMap
@@ -50,11 +51,16 @@ class Engine:
 
     def spawn_entities(self):
         entities = []
-        for y in range(self.game_map.height):
-            for x in range(self.game_map.width):
-                if self.game_map.tiles["walkable"][x, y]:
-                    if randint(100) < 1:
+
+        for y, row in enumerate(self.game_map.tiles):
+            for x, tile in enumerate(row):
+                if tile.terrain.walkable:
+                    if np.random.randint(100) < 1:
                         entities.append(Rabbit(self, x, y))
+                # if terrain_tiles[x, y] == "ground":
+                #     if np.random.randint(100) < 1:
+                #         self.game_map.tiles.item(x, y)[3].append("asdf")#BerryBush())
+                #         np.put(self.game_map.tiles[x, y][2][2], range(2), colors.dark_green())
 
         return entities
 
@@ -65,7 +71,5 @@ class Engine:
             console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
         console.print(self.player.x, self.player.y, self.player.char, fg=self.player.color, bg=self.player.bg_color)
-
         context.present(console)
-
         console.clear()
