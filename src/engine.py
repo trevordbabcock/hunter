@@ -16,6 +16,7 @@ from input_handlers import InputHandler
 
 class Engine:
     def __init__(self, entities: Set[Entity], input_handler: InputHandler, game_map: GameMap, player: Entity):
+        self.game_speed = 1.0
         self.entities = entities
         self.input_handler = input_handler
         self.game_map = game_map

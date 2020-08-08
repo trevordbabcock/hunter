@@ -29,8 +29,8 @@ class IntelligentEntity(Entity):
         self.update_interval_step = update_interval_step
         self.ai = ai
 
-    def get_update_insterval(self):
-        return randrange(self.update_interval_start, self.update_interval_stop, self.update_interval_step) * 0.001
+    def get_update_interval(self):
+        return (randrange(self.update_interval_start, self.update_interval_stop, self.update_interval_step) * 0.001) * (1.0/self.engine.game_speed)
 
     def requeue(self):
         return True # TODO only if not dead
