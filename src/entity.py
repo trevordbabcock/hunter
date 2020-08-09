@@ -42,3 +42,12 @@ class Hunter(Entity):
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [1000, 3000], 100) # milliseconds
+
+class StaticEntity():
+    def __init__(self, engine):
+        self.engine = engine
+
+class BerryBush(StaticEntity):
+    def __init(self, engine):
+        super().__init__(engine)
+        self.bg_color = colors.dark_green()

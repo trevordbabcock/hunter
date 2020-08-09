@@ -24,13 +24,13 @@ def main() -> None:
 
     input_handler = InputHandler()
     game_map = GameMap(map_width, map_height)
-    engine = Engine(entities=[], input_handler=input_handler, game_map=game_map, player=None)
+    engine = Engine(intelligent_entities=[], input_handler=input_handler, game_map=game_map, player=None)
 
     player = entity.Hunter(engine, int(map_width / 2), int(map_height / 2))
     intelligent_entities = engine.spawn_entities()
 
     engine.player = player
-    engine.entities = intelligent_entities
+    engine.intelligent_entities = intelligent_entities
 
     engine.init_event_queue(intelligent_entities)
 

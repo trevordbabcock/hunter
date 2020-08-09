@@ -1,6 +1,8 @@
 import numpy as np  # type: ignore
 from tcod.console import Console
 
+import colors
+from entity import BerryBush
 import terrain
 
 
@@ -49,9 +51,16 @@ class GameMap:
     def render(self, console: Console) -> None:
         for y in range(self.height):
             for x in range(self.width):
-                console.tiles_rgb[x,y] = self.tiles[y][x].terrain.graphic_dt()
+                console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt()
 
 class Tile:
     def __init__(self, terrain):
         self.terrain = terrain
         self.entities = []
+
+    def get_graphic_dt(self):
+        for entity in self.entities:
+            if isinstance(entity, BerryBush):
+                return self.terrain.get_graphic_dt(None, None, colors.dark_green())
+
+        return self.terrain.get_graphic_dt(None, None, None) # gross as hell

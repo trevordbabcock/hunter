@@ -11,8 +11,12 @@ class Terrain():
         self.fg_color = fg_color   # 3-byte sequence
         self.bg_color = bg_color   # 3-byte sequence
     
-    def graphic_dt(self):
-        return (self.character, self.fg_color, self.bg_color) # cache this?
+    def get_graphic_dt(self, character_override, fg_color_override, bg_color_override):
+        return (
+            character_override or self.character,
+            fg_color_override or self.fg_color,
+            bg_color_override or self.bg_color
+        ) # cache this?
 
 class Ground(Terrain):
     def __init__(self):
