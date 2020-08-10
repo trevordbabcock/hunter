@@ -17,4 +17,7 @@ class Event:
         return self.time > other.time
 
     def process(self):
-        self.entity.ai.perform()
+        if hasattr(self.entity, "ai"):
+            self.entity.ai.perform()
+        else:
+            self.entity.progress()

@@ -3,7 +3,7 @@ from collections import deque
 from time import time
 from typing import Set, Iterable, Any
 
-import numpy as np
+import numpy.random as nprand
 from tcod.context import Context
 from tcod.console import Console
 
@@ -16,9 +16,10 @@ import terrain
 
 
 class Engine:
-    def __init__(self, intelligent_entities: Set[entity.Entity], input_handler: InputHandler, game_map: GameMap, player: entity.Entity):
+    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: InputHandler, game_map: GameMap, player: entity.Entity):
         self.game_speed = 1.0
         self.intelligent_entities = intelligent_entities
+        self.static_entities = static_entities
         self.input_handler = input_handler
         self.game_map = game_map
         self.event_queue = deque()
@@ -33,11 +34,11 @@ class Engine:
 
             action.perform(self.player)
 
-    def init_event_queue(self, intelligent_entities):
-        for entity in intelligent_entities:
+    def init_event_queue(self, entities):
+        for entity in entities:
             self.event_queue.append(Event(entity))
 
-        sorted(self.event_queue)
+        self.event_queue = deque(sorted(self.event_queue))
 
     def process_events(self):
         while(len(self.event_queue) > 0):
@@ -57,11 +58,12 @@ class Engine:
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:
-                    if np.random.randint(100) < 1:
+                    if nprand.randint(100) < 1:
                         entities.append(entity.Rabbit(self, x, y))
                 if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
-                    if np.random.randint(100) < 1:
-                        self.game_map.tiles[y][x].entities.append(entity.BerryBush(self))
+                    if nprand.randint(100) < 1:
+                        berry_bush = entity.BerryBush(self)
+                        self.game_map.tiles[y][x].entities.append(berry_bush)
 
         return entities
 
