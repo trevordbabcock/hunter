@@ -16,14 +16,14 @@ import terrain
 
 
 class Engine:
-    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: InputHandler, game_map: GameMap, player: entity.Entity):
+    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: InputHandler, game_map: GameMap, hunter: entity.Entity):
         self.game_speed = 1.0
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
         self.game_map = game_map
         self.event_queue = deque()
-        self.player = player
+        self.hunter = hunter
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -32,7 +32,7 @@ class Engine:
             if action is None:
                 continue
 
-            action.perform(self.player)
+            action.perform(self.hunter) # shouldnt need to do this anymore
 
     def init_event_queue(self, entities):
         for entity in entities:
@@ -73,6 +73,6 @@ class Engine:
         for entity in self.intelligent_entities:
             console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
-        console.print(self.player.x, self.player.y, self.player.char, fg=self.player.color, bg=self.player.bg_color)
+        #console.print(self.hunter.x, self.hunter.y, self.player.char, fg=self.player.color, bg=self.player.bg_color)
         context.present(console)
         console.clear()

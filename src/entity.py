@@ -35,9 +35,9 @@ class IntelligentEntity(Entity):
     def requeue(self):
         return True # TODO only if not dead
 
-class Hunter(Entity):
+class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray())
+        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [1000, 1500], 100) # milliseconds
 
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
