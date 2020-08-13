@@ -35,7 +35,7 @@ class HunterAI():
                 actions.append(MovementAction(0, -1))
         elif(direction == 3):
             for i in range(num_actions):
-                actions.append(MovementAction(0, -1))
+                actions.append(MovementAction(0, 1))
         
         return actions
 
