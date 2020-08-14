@@ -12,6 +12,7 @@ import entity
 from event import Event
 from game_map import GameMap
 from input_handlers import InputHandler
+import static_entity
 import terrain
 
 
@@ -61,8 +62,8 @@ class Engine:
                     if nprand.randint(100) < 1:
                         entities.append(entity.Rabbit(self, x, y))
                 if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
-                    if nprand.randint(100) < 1:
-                        berry_bush = entity.BerryBush(self)
+                    if nprand.randint(100) < 2:
+                        berry_bush = static_entity.BerryBush(self)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
 
         return entities

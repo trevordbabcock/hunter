@@ -2,7 +2,7 @@ import numpy as np  # type: ignore
 from tcod.console import Console
 
 import colors
-from entity import BerryBush
+import static_entity
 import terrain
 
 
@@ -60,7 +60,7 @@ class Tile:
 
     def get_graphic_dt(self):
         for entity in self.entities:
-            if isinstance(entity, BerryBush):
+            if isinstance(entity, static_entity.BerryBush):
                 return self.terrain.get_graphic_dt(None, None, colors.dark_green())
 
         return self.terrain.get_graphic_dt(None, None, None) # gross as hell

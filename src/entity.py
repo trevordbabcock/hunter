@@ -38,44 +38,28 @@ class IntelligentEntity(Entity):
 class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [1000, 1500], 100) # milliseconds
+        self.vision_distance = 7
+
+    # def get_visible_map(self):
+    #     visible_map = [None] * (self.vision_distance * 2)
+    #     y_range_start = self.y - self.vision_distance
+    #     y_range_end = self.y + self.vision_distance
+    #     x_range_start = self.x - self.vision_distance
+    #     x_range_end = self.x + self.vision_distance
+    #     tmp_map = self.engine.game_map.tiles[y_range_start:y_range_end]
+
+    #     for y in range(len(tmp_map)):
+    #         visible_map[y] = tmp_map[y][x_range_start:x_range_end]
+
+    #     return visible_map
+    
+    def can_see(self, entity):
+        vd = self.vision_distance
+        visible_x = (self.x - vd) < entity.x and entity.x < (self.x + vd)
+        visible_y = (self.y - vd) < entity.y and entity.y < (self.y + vd)
+
+        return visible_x and visible_y
 
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [1000, 3000], 100) # milliseconds
-
-class StaticEntity():
-    def __init__(self, engine, update_interval):
-        self.engine = engine
-        self.update_interval = update_interval
-    
-    def progress(self):
-        raise NotImplementedError
-
-    def get_update_interval(self):
-        return (self.update_interval  * 0.001) * (1.0/self.engine.game_speed)
-
-    def requeue(self):
-        return True # TODO only if not dead
-
-class BerryBush(StaticEntity):
-    def __init__(self, engine):
-        super().__init__(engine, 25000) # ms
-        self.bg_color = colors.dark_green()
-        self.num_berries = randrange(12, 25, 1)
-
-    def progress(self):
-        self.grow_berry()
-    
-    def pick_berry(self):
-        if self.num_berries > 0:
-            self.num_berries -= 1
-            return Berry()
-        else:
-            return None
-
-    def grow_berry(self):
-        self.num_berries += 1
-
-class Berry():
-    def __init__(self):
-        pass
