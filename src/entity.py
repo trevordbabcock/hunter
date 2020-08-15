@@ -38,7 +38,7 @@ class IntelligentEntity(Entity):
 class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [1000, 1500], 100) # milliseconds
-        self.vision_distance = 7
+        self.vision_distance = 4
 
     # def get_visible_map(self):
     #     visible_map = [None] * (self.vision_distance * 2)

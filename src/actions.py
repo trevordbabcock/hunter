@@ -59,7 +59,7 @@ class SearchAreaAction(Action):
                 for e in tile.entities:
                     if isinstance(e, static_entity.BerryBush):
                         i += 1
-                        print ("{}. FOUND A BERRY BUSH - ({},{})".format(i, x, y))
+                        print ("{}. FOUND A BERRY BUSH - ({},{})".format(i, tile.x, tile.y))
                         break
 
     def get_search_area(self):

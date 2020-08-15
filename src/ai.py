@@ -16,7 +16,8 @@ class HunterAI():
             actions = self.decide_where_to_go()
             for a in actions:
                 self.action_queue.append(a)
-                self.action_queue.append(act.SearchAreaAction(self.hunter.engine.game_map, self.hunter.x, self.hunter.y, self.hunter.vision_distance, static_entity.BerryBush))
+                
+            self.action_queue.append(act.SearchAreaAction(self.hunter.engine.game_map, self.hunter.x, self.hunter.y, self.hunter.vision_distance, static_entity.BerryBush))
 
         action = self.action_queue.popleft()
         action.perform(self.hunter)

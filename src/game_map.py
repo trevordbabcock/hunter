@@ -38,7 +38,7 @@ class GameMap:
 
                 for cell in cells:
                     if cell != '':
-                        self.tiles[y].append(Tile(terrain=terrain_map[cell.strip()]))
+                        self.tiles[y].append(Tile(terrain_map[cell.strip()], x, y))
                         x = x + 1
 
                 line = file.readline()
@@ -54,9 +54,11 @@ class GameMap:
                 console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt()
 
 class Tile:
-    def __init__(self, terrain):
+    def __init__(self, terrain, x, y):
         self.terrain = terrain
         self.entities = []
+        self.x = x
+        self.y = y
 
     def get_graphic_dt(self):
         for entity in self.entities:
