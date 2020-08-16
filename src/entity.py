@@ -1,3 +1,4 @@
+import numpy.random as nprand
 from random import randrange
 from typing import Tuple
 
@@ -35,23 +36,13 @@ class IntelligentEntity(Entity):
     def requeue(self):
         return True # TODO only if not dead
 
+    def eat(self, entity):
+        pass
+
 class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [1000, 1500], 100) # milliseconds
         self.vision_distance = 4
-
-    # def get_visible_map(self):
-    #     visible_map = [None] * (self.vision_distance * 2)
-    #     y_range_start = self.y - self.vision_distance
-    #     y_range_end = self.y + self.vision_distance
-    #     x_range_start = self.x - self.vision_distance
-    #     x_range_end = self.x + self.vision_distance
-    #     tmp_map = self.engine.game_map.tiles[y_range_start:y_range_end]
-
-    #     for y in range(len(tmp_map)):
-    #         visible_map[y] = tmp_map[y][x_range_start:x_range_end]
-
-    #     return visible_map
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -59,6 +50,12 @@ class Hunter(IntelligentEntity):
         visible_y = (self.y - vd) < entity.y and entity.y < (self.y + vd)
 
         return visible_x and visible_y
+
+    def eat(self, entity):
+        print("HUNTER ATE SOMETHING")
+
+    def is_hungry(self):
+        return nprand.randint(3) < 1
 
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):

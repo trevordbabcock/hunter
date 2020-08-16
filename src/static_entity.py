@@ -7,8 +7,10 @@ import entity
 
 
 class StaticEntity():
-    def __init__(self, engine, update_interval):
+    def __init__(self, engine, x, y, update_interval):
         self.engine = engine
+        self.x = x
+        self.y = y
         self.update_interval = update_interval
     
     def progress(self):
@@ -21,8 +23,8 @@ class StaticEntity():
         return True # TODO only if not dead
 
 class BerryBush(StaticEntity):
-    def __init__(self, engine):
-        super().__init__(engine, 25000) # ms
+    def __init__(self, engine, x, y):
+        super().__init__(engine, x, y, 25000) # ms
         self.bg_color = colors.dark_green()
         self.num_berries = randrange(12, 25, 1)
 

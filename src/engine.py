@@ -63,7 +63,7 @@ class Engine:
                         entities.append(entity.Rabbit(self, x, y))
                 if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
                     if nprand.randint(100) < 1:
-                        berry_bush = static_entity.BerryBush(self)
+                        berry_bush = static_entity.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
 
         return entities

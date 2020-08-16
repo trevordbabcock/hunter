@@ -1,4 +1,3 @@
-import numpy as np  # type: ignore
 from tcod.console import Console
 
 import colors
@@ -17,16 +16,18 @@ class GameMap:
     def __init__(self, width: int, height: int):
         self.height = height
         self.width = width
-        self.tiles = self.init_empty_map()
+        self.tiles, self.path_map = self.init_empty_map()
         self.load_map_from_file('resources/maps/large_zoomed_map.txt')
 
     def init_empty_map(self):
         tiles = []
+        path_map = []
 
         for i in range(self.height):
             tiles.append([])
+            path_map.append([])
 
-        return tiles
+        return tiles, path_map
 
     def load_map_from_file(self, filepath):
         with open(filepath) as file:
@@ -39,10 +40,12 @@ class GameMap:
                 for cell in cells:
                     if cell != '':
                         self.tiles[y].append(Tile(terrain_map[cell.strip()], x, y))
+                        self.path_map[y].append(1 if self.tiles[y][x].terrain.walkable else 0)
                         x = x + 1
 
                 line = file.readline()
                 y = y + 1
+
 
     def in_bounds(self, x: int, y: int) -> bool:
         """Return True if x and y are inside of the bounds of this map."""
