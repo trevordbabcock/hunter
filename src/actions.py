@@ -51,14 +51,15 @@ class SearchAreaAction(Action):
         i = 0
         for y in range(len(search_area)):
             row = search_area[y]
-            for x in range(len(row)):
-                tile = row[x]
-                for e in tile.entities:
-                    if isinstance(e, self.search_for_class):
-                        i += 1
-                        found_entities.append(e)
-                        print ("{}. FOUND AN ENTITY - ({},{})".format(i, e.x, e.y))
-                        break
+            if row != None:
+                for x in range(len(row)):
+                    tile = row[x]
+                    for e in tile.entities:
+                        if isinstance(e, self.search_for_class):
+                            i += 1
+                            found_entities.append(e)
+                            print ("{}. FOUND AN ENTITY - ({},{})".format(i, e.x, e.y))
+                            break
 
         nearest_entity = None
         nearest_entity_distance = None
@@ -91,10 +92,10 @@ class SearchAreaAction(Action):
 
     def get_search_area(self):
         search_area = [None] * (self.search_radius * 2)
-        y_range_start = self.entity.y - self.search_radius
-        y_range_end = self.entity.y + self.search_radius
-        x_range_start = self.entity.x - self.search_radius
-        x_range_end = self.entity.x + self.search_radius
+        y_range_start = max(0, self.entity.y - self.search_radius)
+        y_range_end = min(self.game_map.height - 1, self.entity.y + self.search_radius)
+        x_range_start = max(0, self.entity.x - self.search_radius)
+        x_range_end = min(self.game_map.width - 1, self.entity.x + self.search_radius)
         tmp_map = self.game_map.tiles[y_range_start:y_range_end]
 
         for y in range(len(tmp_map)):

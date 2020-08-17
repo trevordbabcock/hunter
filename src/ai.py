@@ -40,7 +40,7 @@ class HunterAI():
 
     def decide_where_to_go(self):
         direction = randint(4)
-        num_actions = randrange(1, 5, 1)
+        num_actions = randrange(3, 8, 1)
         actions = []
 
         if(direction == 0):
