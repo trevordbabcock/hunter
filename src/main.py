@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from bisect import insort
+import sys
 import time
 import tcod
 
@@ -10,9 +11,11 @@ import entity
 from event import Event
 from game_map import GameMap
 from input_handlers import InputHandler
+from stats import Stats
 
 
 def main() -> None:
+    Stats.load(sys.argv[1])
     seconds_per_frame = 0.016
     screen_width = 80
     screen_height = 50

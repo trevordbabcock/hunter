@@ -13,6 +13,7 @@ from event import Event
 from game_map import GameMap
 from input_handlers import InputHandler
 import static_entity
+from stats import Stats
 import terrain
 
 
@@ -59,10 +60,10 @@ class Engine:
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:
-                    if nprand.randint(100) < 1:
+                    if nprand.rand() < Stats.map["rabbit"]["spawn"]:
                         entities.append(entity.Rabbit(self, x, y))
                 if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
-                    if nprand.randint(100) < 2:
+                    if nprand.rand() < Stats.map["berry-bush"]["spawn"]:
                         berry_bush = static_entity.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
 

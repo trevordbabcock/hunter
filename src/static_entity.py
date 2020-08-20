@@ -4,6 +4,7 @@ from typing import Tuple
 import ai
 import colors
 import entity
+from stats import Stats
 
 
 class StaticEntity():
@@ -24,9 +25,9 @@ class StaticEntity():
 
 class BerryBush(StaticEntity):
     def __init__(self, engine, x, y):
-        super().__init__(engine, x, y, 25000) # ms
+        super().__init__(engine, x, y, Stats.map["berry-bush"]["update-interval"]) # ms
         self.bg_color = colors.dark_green()
-        self.num_berries = randrange(12, 25, 1)
+        self.num_berries = randrange(Stats.map["berry-bush"]["spawn-min-berries"], Stats.map["berry-bush"]["spawn-max-berries"], 1)
 
     def progress(self):
         self.grow_berry()
@@ -39,7 +40,7 @@ class BerryBush(StaticEntity):
             return None
 
     def grow_berry(self):
-        self.num_berries += 1
+        self.num_berries += Stats.map["berry-bush"]["grow-berries"]
 
 class Berry():
     def __init__(self):

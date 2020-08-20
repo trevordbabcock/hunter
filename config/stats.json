@@ -1,0 +1,23 @@
+{
+    "game-speed": 1.0,
+    "berry-bush": {
+        "spawn": 0.02,
+        "update-interval": 25000,
+        "spawn-min-berries": 12,
+        "spawn-max-berries": 25,
+        "grow-berries": 1
+    },
+    "hunter": {
+        "is-hungry": 0.33,
+        "vision-distance": 4,
+        "update-interval-start": 1000,
+        "update-interval-end" :1500,
+        "update-interval-step": 100
+    },
+    "rabbit": {
+        "spawn": 0.01,
+        "update-interval-start": 1000,
+        "update-interval-end" :3000,
+        "update-interval-step": 100
+    }
+}

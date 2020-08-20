@@ -4,6 +4,7 @@ from typing import Tuple
 
 import ai
 import colors
+from stats import Stats
 
 class Entity:
     """
@@ -41,8 +42,8 @@ class IntelligentEntity(Entity):
 
 class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [1000, 1500], 100) # milliseconds
-        self.vision_distance = 4
+        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [Stats.map["hunter"]["update-interval-start"], Stats.map["hunter"]["update-interval-end"]], Stats.map["hunter"]["update-interval-step"])
+        self.vision_distance = Stats.map["hunter"]["vision-distance"]
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -55,8 +56,8 @@ class Hunter(IntelligentEntity):
         print("HUNTER ATE SOMETHING")
 
     def is_hungry(self):
-        return nprand.randint(3) < 1
+        return nprand.rand() < Stats.map["hunter"]["is-hungry"]
 
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [1000, 3000], 100) # milliseconds
+        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [Stats.map["rabbit"]["update-interval-start"], Stats.map["rabbit"]["update-interval-end"]], Stats.map["rabbit"]["update-interval-step"])
