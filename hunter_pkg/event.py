@@ -1,12 +1,11 @@
 from time import time
 from typing import Callable
 
-from entity import IntelligentEntity
-from game_map import GameMap
+from hunter_pkg import entity as ent
 
 
 class Event:
-    def __init__(self, entity: IntelligentEntity):
+    def __init__(self, entity: ent.IntelligentEntity):
         self.entity = entity
         self.time = time() + entity.get_update_interval()
 

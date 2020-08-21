@@ -1,8 +1,12 @@
 from __future__ import annotations
 
-import pathfinder
-import static_entity
+from hunter_pkg import flogging
+from hunter_pkg import log_level
+from hunter_pkg import pathfinder
+from hunter_pkg import static_entity
 
+
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Action:
     def perform(self):
@@ -24,7 +28,7 @@ class MovementAction(Action):
 
     def perform(self):
         if type(self.entity).__name__ == "Hunter":
-            print("moving")
+            flog.debug("hunter is moving")
         dest_x = self.entity.x + self.dx
         dest_y = self.entity.y + self.dy
 
@@ -45,7 +49,7 @@ class SearchAreaAction(Action):
         self.plan_b = plan_b
 
     def perform(self):
-        print("searching area")
+        flog.debug("hunter is searching area")
         search_area = self.get_search_area()
         found_entities = []
         i = 0
@@ -55,10 +59,10 @@ class SearchAreaAction(Action):
                 for x in range(len(row)):
                     tile = row[x]
                     for e in tile.entities:
-                        if isinstance(e, self.search_for_class):
+                        if e.__class__.__name__ == self.search_for_class:
                             i += 1
                             found_entities.append(e)
-                            print ("{}. FOUND AN ENTITY - ({},{})".format(i, e.x, e.y))
+                            flog.debug("- found an entity: ({},{})".format(e.x, e.y))
                             break
 
         nearest_entity = None
@@ -110,6 +114,6 @@ class PickAndEatAction(Action):
         self.static_entity = static_entity
 
     def perform(self):
-        print("picking and eating")
+        flog.debug("hunter is picking and eating")
         berry = self.static_entity.pick_berry()
         self.intelligent_entity.eat(berry)

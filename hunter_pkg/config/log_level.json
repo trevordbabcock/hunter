@@ -1,0 +1,8 @@
+{
+    "default": "ERROR",
+    "overrides": {
+        "actions.py": "DEBUG",
+        "ai.py": "DEBUG",
+        "entity.py": "DEBUG"
+    }
+}

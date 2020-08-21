@@ -1,8 +1,8 @@
 from tcod.console import Console
 
-import colors
-import static_entity
-import terrain
+from hunter_pkg import colors
+from hunter_pkg import static_entity
+from hunter_pkg import terrain
 
 
 terrain_map = {

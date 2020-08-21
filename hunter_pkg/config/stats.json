@@ -8,7 +8,7 @@
         "grow-berries": 1
     },
     "hunter": {
-        "is-hungry": 0.33,
+        "is-hungry": 0.5,
         "vision-distance": 4,
         "update-interval-start": 1000,
         "update-interval-end" :1500,

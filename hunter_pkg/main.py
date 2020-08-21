@@ -5,17 +5,20 @@ import sys
 import time
 import tcod
 
-import colors
-from engine import Engine
-import entity
-from event import Event
-from game_map import GameMap
-from input_handlers import InputHandler
-from stats import Stats
+from hunter_pkg import colors
+from hunter_pkg import engine as eng
+from hunter_pkg import entity
+from hunter_pkg import event
+from hunter_pkg import flogging
+from hunter_pkg import game_map as gm
+from hunter_pkg import input_handlers
+from hunter_pkg import stats
 
+
+flog = flogging.Flogging.get(__file__, flogging.INFO)
 
 def main() -> None:
-    Stats.load(sys.argv[1])
+    stats.Stats.map(sys.argv[1])
     seconds_per_frame = 0.016
     screen_width = 80
     screen_height = 50
@@ -27,9 +30,9 @@ def main() -> None:
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
 
-    input_handler = InputHandler()
-    game_map = GameMap(map_width, map_height)
-    engine = Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map, hunter=None)
+    input_handler = input_handlers.InputHandler()
+    game_map = gm.GameMap(map_width, map_height)
+    engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map, hunter=None)
 
     hunter = entity.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
     intelligent_entities = engine.spawn_entities()
@@ -40,7 +43,7 @@ def main() -> None:
     for row in game_map.tiles:
         for tile in row:
             for e in tile.entities:
-                insort(engine.event_queue, Event(e))
+                insort(engine.event_queue, event.Event(e))
 
     engine.init_event_queue(engine.static_entities) # this is weird
     engine.init_event_queue(intelligent_entities)

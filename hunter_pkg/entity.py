@@ -2,9 +2,14 @@ import numpy.random as nprand
 from random import randrange
 from typing import Tuple
 
-import ai
-import colors
-from stats import Stats
+from hunter_pkg import ai
+from hunter_pkg import colors
+from hunter_pkg import flogging
+from hunter_pkg import log_level
+from hunter_pkg.stats import Stats
+
+
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Entity:
     """
@@ -42,8 +47,8 @@ class IntelligentEntity(Entity):
 
 class Hunter(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [Stats.map["hunter"]["update-interval-start"], Stats.map["hunter"]["update-interval-end"]], Stats.map["hunter"]["update-interval-step"])
-        self.vision_distance = Stats.map["hunter"]["vision-distance"]
+        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), ai.HunterAI(self), [Stats.map()["hunter"]["update-interval-start"], Stats.map()["hunter"]["update-interval-end"]], Stats.map()["hunter"]["update-interval-step"])
+        self.vision_distance = Stats.map()["hunter"]["vision-distance"]
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -53,11 +58,11 @@ class Hunter(IntelligentEntity):
         return visible_x and visible_y
 
     def eat(self, entity):
-        print("HUNTER ATE SOMETHING")
+        flog.debug("hunter ate something")
 
     def is_hungry(self):
-        return nprand.rand() < Stats.map["hunter"]["is-hungry"]
+        return nprand.rand() < Stats.map()["hunter"]["is-hungry"]
 
 class Rabbit(IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [Stats.map["rabbit"]["update-interval-start"], Stats.map["rabbit"]["update-interval-end"]], Stats.map["rabbit"]["update-interval-step"])
+        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), ai.RabbitAI(self), [Stats.map()["rabbit"]["update-interval-start"], Stats.map()["rabbit"]["update-interval-end"]], Stats.map()["rabbit"]["update-interval-step"])

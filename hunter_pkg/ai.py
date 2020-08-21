@@ -2,15 +2,19 @@ from collections import deque
 from numpy.random import randint
 from random import randrange
 
-import actions as act
-import pathfinder
-import static_entity
+import hunter_pkg.actions as act
+from hunter_pkg import flogging
+from hunter_pkg import log_level
+from hunter_pkg import pathfinder
+from hunter_pkg import static_entity
+
+
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class HunterAI():
     def __init__(self, hunter):
         self.hunter = hunter
         self.action_queue = deque()
-        #self.gamemap = gamemap
 
     def perform(self):
         if len(self.action_queue) > 0:
@@ -30,10 +34,10 @@ class HunterAI():
     def decide_what_to_do(self):
         actions = []
         if self.hunter.is_hungry():
-            print("hunter is HUNGRY")
-            actions.append(act.SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, static_entity.BerryBush, self.decide_where_to_go()))
+            flog.debug("hunter is HUNGRY")
+            actions.append(act.SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, static_entity.BerryBush.__name__, self.decide_where_to_go()))
         else:
-            ("hunter is NOT hungry")
+            flog.debug("hunter is NOT hungry")
             actions = self.decide_where_to_go()
 
         return actions

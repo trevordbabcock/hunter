@@ -7,18 +7,22 @@ import numpy.random as nprand
 from tcod.context import Context
 from tcod.console import Console
 
-import colors
-import entity
-from event import Event
-from game_map import GameMap
-from input_handlers import InputHandler
-import static_entity
-from stats import Stats
-import terrain
+from hunter_pkg import colors
+from hunter_pkg import entity
+from hunter_pkg import event as ev
+from hunter_pkg import flogging
+from hunter_pkg import game_map
+from hunter_pkg import input_handlers
+from hunter_pkg import log_level
+from hunter_pkg import static_entity
+from hunter_pkg import stats
+from hunter_pkg import terrain
 
+
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Engine:
-    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: InputHandler, game_map: GameMap, hunter: entity.Entity):
+    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: input_handlers.InputHandler, game_map: game_map.GameMap, hunter: entity.Entity):
         self.game_speed = 1.0
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
@@ -38,7 +42,7 @@ class Engine:
 
     def init_event_queue(self, entities):
         for entity in entities:
-            self.event_queue.append(Event(entity))
+            self.event_queue.append(ev.Event(entity))
 
         self.event_queue = deque(sorted(self.event_queue))
 
@@ -50,7 +54,7 @@ class Engine:
                 event.process()
                 self.event_queue.popleft()
                 if event.entity.requeue():
-                    insort(self.event_queue, Event(event.entity))
+                    insort(self.event_queue, ev.Event(event.entity))
             else:
                 break
 
@@ -60,10 +64,10 @@ class Engine:
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:
-                    if nprand.rand() < Stats.map["rabbit"]["spawn"]:
+                    if nprand.rand() < stats.Stats.map()["rabbit"]["spawn"]:
                         entities.append(entity.Rabbit(self, x, y))
                 if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
-                    if nprand.rand() < Stats.map["berry-bush"]["spawn"]:
+                    if nprand.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = static_entity.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
 
