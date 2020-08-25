@@ -2,7 +2,7 @@ from typing import Optional
 
 import tcod.event
 
-from actions import Action, EscapeAction, MovementAction
+from actions import Action, EscapeAction
 
 
 class InputHandler(tcod.event.EventDispatch[Action]):
@@ -26,7 +26,8 @@ class InputHandler(tcod.event.EventDispatch[Action]):
         elif key == tcod.event.K_RIGHT:
             pass
             #action = MovementAction(dx=1, dy=0)
-
+        elif key == tcod.event.K_h:
+            pass
         elif key == tcod.event.K_ESCAPE:
             action = EscapeAction()
 

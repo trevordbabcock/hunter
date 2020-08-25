@@ -17,6 +17,7 @@ from hunter_pkg import log_level
 from hunter_pkg import static_entity
 from hunter_pkg import stats
 from hunter_pkg import terrain
+from hunter_pkg import ui_panel
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
@@ -30,6 +31,7 @@ class Engine:
         self.game_map = game_map
         self.event_queue = deque()
         self.hunter = hunter
+        self.stats_panel = ui_panel.UIPanel(1, 1, 17, 48, 17)
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -78,6 +80,9 @@ class Engine:
 
         for entity in self.intelligent_entities:
             console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+
+        if True:
+            self.stats_panel.render(console)
 
         #console.print(self.hunter.x, self.hunter.y, self.player.char, fg=self.player.color, bg=self.player.bg_color)
         context.present(console)
