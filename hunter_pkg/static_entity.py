@@ -1,7 +1,6 @@
 from random import randrange
 from typing import Tuple
 
-from hunter_pkg import ai
 from hunter_pkg import colors
 from hunter_pkg import entity
 from hunter_pkg.stats import Stats
@@ -44,4 +43,4 @@ class BerryBush(StaticEntity):
 
 class Berry():
     def __init__(self):
-        pass
+        self.nutritional_value = Stats.map()["berry"]["nutritional-value"]

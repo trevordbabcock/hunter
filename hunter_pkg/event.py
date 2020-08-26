@@ -18,5 +18,5 @@ class Event:
     def process(self):
         if hasattr(self.entity, "ai"):
             self.entity.ai.perform()
-        else:
-            self.entity.progress()
+
+        self.entity.progress()

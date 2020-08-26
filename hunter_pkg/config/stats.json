@@ -3,13 +3,24 @@
     "berry-bush": {
         "spawn": 0.02,
         "update-interval": 25000,
-        "spawn-min-berries": 12,
-        "spawn-max-berries": 25,
+        "spawn-min-berries": 5,
+        "spawn-max-berries": 10,
         "grow-berries": 1
     },
+    "berry": {
+        "nutritional-value": 2
+    },
     "hunter": {
-        "is-hungry": 0.5,
         "vision-distance": 4,
+        "max-hunger": 50,
+        "max-health": 50,
+        "max-energy": 50,
+        "starting-hunger": 10,
+        "starting-health": 50,
+        "starting-energy": 50,
+        "hunger-loss": 0.25,
+        "hunger-threshold-low": 35,
+        "hunger-threshold-high": 50,
         "update-interval-start": 1000,
         "update-interval-end" :1500,
         "update-interval-step": 100

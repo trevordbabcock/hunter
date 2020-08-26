@@ -32,12 +32,13 @@ def main() -> None:
 
     input_handler = input_handlers.InputHandler()
     game_map = gm.GameMap(map_width, map_height)
-    engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map, hunter=None)
+    engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
     hunter = entity.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
     intelligent_entities = engine.spawn_entities()
     engine.intelligent_entities = intelligent_entities
     engine.hunter = hunter
+    engine.init_stats_panel()
     engine.intelligent_entities.append(hunter)
     
     for row in game_map.tiles:

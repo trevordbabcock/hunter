@@ -23,15 +23,14 @@ from hunter_pkg import ui_panel
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Engine:
-    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: input_handlers.InputHandler, game_map: game_map.GameMap, hunter: entity.Entity):
+    def __init__(self, intelligent_entities: Set[entity.Entity], static_entities, input_handler: input_handlers.InputHandler, game_map: game_map.GameMap):
         self.game_speed = 1.0
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
         self.game_map = game_map
         self.event_queue = deque()
-        self.hunter = hunter
-        self.stats_panel = ui_panel.UIPanel(1, 1, 17, 48, 17)
+        self.hunter = None
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -40,7 +39,7 @@ class Engine:
             if action is None:
                 continue
 
-            action.perform(self.hunter) # shouldnt need to do this anymore
+            action.perform(self.hunter)
 
     def init_event_queue(self, entities):
         for entity in entities:
@@ -75,12 +74,16 @@ class Engine:
 
         return entities
 
+    def init_stats_panel(self):
+        self.stats_panel = ui_panel.UIPanel(1, 1, 17, 48, self.hunter)
+
     def render(self, console: Console, context: Context) -> None:
         self.game_map.render(console)
 
         for entity in self.intelligent_entities:
             console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
+        # TODO make this hideable
         if True:
             self.stats_panel.render(console)
 
