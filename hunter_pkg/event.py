@@ -1,11 +1,9 @@
 from time import time
 from typing import Callable
 
-from hunter_pkg import entity as ent
-
 
 class Event:
-    def __init__(self, entity: ent.IntelligentEntity):
+    def __init__(self, entity):
         self.entity = entity
         self.time = time() + entity.get_update_interval()
 

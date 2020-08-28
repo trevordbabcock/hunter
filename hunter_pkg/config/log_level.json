@@ -1,7 +1,7 @@
 {
     "default": "ERROR",
     "overrides": {
-        "hunter_ai.py": "DEBUG",
+        "hunter.py": "DEBUG",
         "entity.py": "DEBUG"
     }
 }

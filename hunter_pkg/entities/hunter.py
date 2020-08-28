@@ -4,13 +4,58 @@ from collections import deque
 from numpy.random import randint
 from random import randrange
 
-from .. import flogging
-from .. import log_level
-from .. import pathfinder
-from .. import static_entity
+from hunter_pkg.entities import base_entity
+from hunter_pkg.entities import berry_bush as bb
+
+from hunter_pkg import colors
+from hunter_pkg import flogging
+from hunter_pkg import log_level
+from hunter_pkg import pathfinder
+from hunter_pkg import stats
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
+
+class Hunter(base_entity.IntelligentEntity):
+    def __init__(self, engine, x: int, y: int):
+        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
+        self.alive = True
+        self.max_hunger = stats.Stats.map()["hunter"]["max-hunger"]
+        self.max_health = stats.Stats.map()["hunter"]["max-health"]
+        self.max_energy = stats.Stats.map()["hunter"]["max-energy"]
+        self.curr_hunger = stats.Stats.map()["hunter"]["starting-hunger"]
+        self.curr_health = stats.Stats.map()["hunter"]["starting-health"]
+        self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
+        self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
+    
+    def can_see(self, entity):
+        vd = self.vision_distance
+        visible_x = (self.x - vd) < entity.x and entity.x < (self.x + vd)
+        visible_y = (self.y - vd) < entity.y and entity.y < (self.y + vd)
+
+        return visible_x and visible_y
+
+    def eat(self, entity):
+        flog.debug("hunter ate something")
+        self.curr_hunger += entity.nutritional_value
+
+    def is_hungry(self):
+        return self.curr_hunger < stats.Stats.map()["hunter"]["hunger-threshold-low"]
+
+    def is_still_hungry(self):
+        return self.curr_hunger < stats.Stats.map()["hunter"]["hunger-threshold-high"]
+
+    def die(self):
+        flog.debug("omg hunter died")
+        self.alive = False
+        self.char = "X"
+
+    def progress(self):
+        if self.curr_hunger == 0:
+            self.die()
+        else:
+            self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
+
 
 class HunterAI():
     def __init__(self, hunter):
@@ -36,7 +81,7 @@ class HunterAI():
         actions = []
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
-            actions.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, static_entity.BerryBush.__name__, self.decide_where_to_go()))
+            actions.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, bb.BerryBush.__name__, self.decide_where_to_go()))
         else:
             flog.debug("hunter is NOT hungry")
             actions = self.decide_where_to_go()
@@ -176,7 +221,7 @@ class PickAndEatAction(Action):
                 if self.static_entity.num_berries > 0:
                     self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
                 else:
-                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, static_entity.BerryBush.__name__, self.hunter.ai.decide_where_to_go()))
+                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, bb.BerryBush.__name__, self.hunter.ai.decide_where_to_go()))
         else:
             for action in self.hunter.ai.decide_where_to_go():
                 self.hunter.ai.action_queue.append(action)

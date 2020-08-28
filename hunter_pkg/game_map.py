@@ -1,7 +1,7 @@
 from tcod.console import Console
 
+from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg import colors
-from hunter_pkg import static_entity
 from hunter_pkg import terrain
 
 
@@ -65,7 +65,7 @@ class Tile:
 
     def get_graphic_dt(self):
         for entity in self.entities:
-            if isinstance(entity, static_entity.BerryBush):
+            if isinstance(entity, bb.BerryBush):
                 return self.terrain.get_graphic_dt(None, None, colors.dark_green())
 
         return self.terrain.get_graphic_dt(None, None, None) # gross as hell

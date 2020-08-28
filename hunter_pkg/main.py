@@ -5,9 +5,10 @@ import sys
 import time
 import tcod
 
+from hunter_pkg.entities import hunter as htr
+
 from hunter_pkg import colors
 from hunter_pkg import engine as eng
-from hunter_pkg import entity
 from hunter_pkg import event
 from hunter_pkg import flogging
 from hunter_pkg import game_map as gm
@@ -34,7 +35,7 @@ def main() -> None:
     game_map = gm.GameMap(map_width, map_height)
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
-    hunter = entity.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
+    hunter = htr.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
     intelligent_entities = engine.spawn_entities()
     engine.intelligent_entities = intelligent_entities
     engine.hunter = hunter
