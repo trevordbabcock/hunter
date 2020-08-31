@@ -6,7 +6,7 @@ from hunter_pkg import terrain
 
 
 terrain_map = {
-    "G": terrain.Ground(),
+    "G": terrain.Grass(),
     "F": terrain.Forest(),
     "^": terrain.Mountain(),
     "~": terrain.Water(),
@@ -62,10 +62,14 @@ class Tile:
         self.entities = []
         self.x = x
         self.y = y
+        self.hovered = False
 
     def get_graphic_dt(self):
-        for entity in self.entities:
-            if isinstance(entity, bb.BerryBush):
-                return self.terrain.get_graphic_dt(None, None, colors.dark_green())
+        if self.hovered:
+            return self.terrain.get_graphic_dt(None, None, colors.light_gray())
+        else:
+            for entity in self.entities:
+                if isinstance(entity, bb.BerryBush):
+                    return self.terrain.get_graphic_dt(None, None, colors.dark_green())
 
         return self.terrain.get_graphic_dt(None, None, None) # gross as hell

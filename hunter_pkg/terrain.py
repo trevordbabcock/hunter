@@ -18,7 +18,7 @@ class Terrain():
             bg_color_override or self.bg_color
         ) # cache this?
 
-class Ground(Terrain):
+class Grass(Terrain):
     def __init__(self):
         super().__init__(True, ord("G"), colors.green(), colors.dark_gray())
 

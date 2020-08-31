@@ -109,12 +109,7 @@ class HunterAI():
         return actions
 
 
-class Action:
-    def perform(self):
-        raise NotImplementedError()
-
-
-class MovementAction(Action):
+class MovementAction():
     def __init__(self, hunter, dy, dx):
         super().__init__()
 
@@ -133,10 +128,19 @@ class MovementAction(Action):
         if not self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
             return  # Destination is blocked by a tile.
 
+        # remove reference from origin tile
+        orig_tile = self.hunter.engine.game_map.tiles[self.hunter.y][self.hunter.x]
+        for entity in orig_tile.entities:
+                if entity == self.hunter:
+                    orig_tile.entities.remove(entity)
+        
+        # add reference to destination tile
+        self.hunter.engine.game_map.tiles[dest_y][dest_x].entities.append(self.hunter)
+
         self.hunter.move(self.dx, self.dy)
 
 
-class SearchAreaAction(Action):
+class SearchAreaAction():
     def __init__(self, hunter, game_map, search_radius, search_for_class, plan_b):
         self.hunter = hunter
         self.game_map = game_map
@@ -204,7 +208,7 @@ class SearchAreaAction(Action):
         return search_area
 
 
-class PickAndEatAction(Action):
+class PickAndEatAction():
     def __init__(self, hunter, static_entity):
         self.hunter = hunter
         self.static_entity = static_entity

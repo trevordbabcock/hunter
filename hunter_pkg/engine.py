@@ -33,6 +33,7 @@ class Engine:
         self.game_map = game_map
         self.event_queue = deque()
         self.hunter = None
+        self.hovered_tile = None
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -41,7 +42,7 @@ class Engine:
             if action is None:
                 continue
 
-            action.perform(self.hunter)
+            action.perform(self)
 
     def init_event_queue(self, entities):
         for entity in entities:
@@ -62,22 +63,26 @@ class Engine:
                 break
 
     def spawn_entities(self):
-        entities = []
+        intelligent_entities = []
+        static_entities = []
 
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:
                     if nprand.rand() < stats.Stats.map()["rabbit"]["spawn"]:
-                        entities.append(rbt.Rabbit(self, x, y))
-                if isinstance(tile.terrain, terrain.Ground) or isinstance(tile.terrain, terrain.Forest):
+                        rabbit = rbt.Rabbit(self, x, y)
+                        self.game_map.tiles[y][x].entities.append(rabbit)
+                        intelligent_entities.append(rabbit)
+                if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if nprand.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
+                        static_entities.append(berry_bush)
 
-        return entities
+        return intelligent_entities, static_entities
 
     def init_stats_panel(self):
-        self.stats_panel = ui_panel.UIPanel(1, 1, 17, 48, self.hunter)
+        self.stats_panel = ui_panel.UIPanel(1, 1, 48, 17, self)
 
     def render(self, console: Console, context: Context) -> None:
         self.game_map.render(console)

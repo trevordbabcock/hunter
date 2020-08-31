@@ -36,10 +36,8 @@ def main() -> None:
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
     hunter = htr.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
-    intelligent_entities = engine.spawn_entities()
-    engine.intelligent_entities = intelligent_entities
+    engine.intelligent_entities, engine.static_entities = engine.spawn_entities()
     engine.hunter = hunter
-    engine.init_stats_panel()
     engine.intelligent_entities.append(hunter)
     
     for row in game_map.tiles:
@@ -47,8 +45,11 @@ def main() -> None:
             for e in tile.entities:
                 insort(engine.event_queue, event.Event(e))
 
-    engine.init_event_queue(engine.static_entities) # this is weird
-    engine.init_event_queue(intelligent_entities)
+    engine.init_stats_panel()
+
+    # this is weird
+    engine.init_event_queue(engine.intelligent_entities)
+    engine.init_event_queue(engine.static_entities)
 
     with tcod.context.new_terminal(
         screen_width,

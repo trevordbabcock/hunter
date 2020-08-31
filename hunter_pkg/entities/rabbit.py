@@ -52,4 +52,13 @@ class MovementAction():
         if not self.rabbit.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
             return  # Destination is blocked by a tile.
 
+        # remove reference from origin tile
+        orig_tile = self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x]
+        for entity in orig_tile.entities:
+            if entity == self.rabbit:
+                orig_tile.entities.remove(entity)
+        
+        # add reference to destination tile
+        self.rabbit.engine.game_map.tiles[dest_y][dest_x].entities.append(self.rabbit)
+
         self.rabbit.move(self.dx, self.dy)
