@@ -32,7 +32,7 @@ def main() -> None:
     )
 
     input_handler = input_handlers.InputHandler()
-    game_map = gm.GameMap(map_width, map_height)
+    game_map = gm.GameMap(map_width, map_height, stats.Stats.map()["settings"]["show-fog"])
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
     hunter = htr.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
@@ -46,6 +46,7 @@ def main() -> None:
                 insort(engine.event_queue, event.Event(e))
 
     engine.init_stats_panel()
+    engine.init_fog_reveal()
 
     # this is weird
     engine.init_event_queue(engine.intelligent_entities)

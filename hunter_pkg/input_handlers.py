@@ -30,6 +30,8 @@ class InputHandler(tcod.event.EventDispatch[act.Action]):
             pass
         elif key == tcod.event.K_h:
             pass
+        elif key == tcod.event.K_f:
+            action = act.ToggleVisionAction()
         elif key == tcod.event.K_ESCAPE:
             action = act.EscapeAction()
 

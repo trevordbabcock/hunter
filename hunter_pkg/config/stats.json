@@ -1,5 +1,8 @@
 {
-    "game-speed": 1.0,
+    "settings": {
+        "game-speed": 1.0,
+        "show-fog": false
+    },
     "berry-bush": {
         "spawn": 0.02,
         "update-interval": 25000,

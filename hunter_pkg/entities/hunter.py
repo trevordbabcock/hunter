@@ -12,6 +12,7 @@ from hunter_pkg import flogging
 from hunter_pkg import log_level
 from hunter_pkg import pathfinder
 from hunter_pkg import stats
+from hunter_pkg import vision_map as vsmap
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
@@ -27,6 +28,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.curr_health = stats.Stats.map()["hunter"]["starting-health"]
         self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
         self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
+        self.memory = HunterMemory()
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -109,6 +111,13 @@ class HunterAI():
         return actions
 
 
+class HunterMemory():
+    def __init__(self):
+        self.map = {
+            "explored-terrain": {}
+        }
+
+
 class MovementAction():
     def __init__(self, hunter, dy, dx):
         super().__init__()
@@ -116,6 +125,22 @@ class MovementAction():
         self.hunter = hunter
         self.dx = dx
         self.dy = dy
+
+    def remember_terrain(self, hunter):
+        vision_map = vsmap.normal()
+        x_start = self.hunter.x - self.hunter.vision_distance
+        x_end = self.hunter.x + self.hunter.vision_distance
+        y_start = self.hunter.y - self.hunter.vision_distance
+        y_end = self.hunter.y + self.hunter.vision_distance
+
+        for y in range(y_start, y_end+1):
+            for x in range(x_start, x_end+1):
+                # This is confusing. Basic idea is to apply the vision map to the hunter's memory and the game map, but only
+                # set "explored" to True, never to False i.e. don't let the corners of a circular vision map "unexplore" tiles.
+                prev_visible = f"{x},{y}" in self.hunter.memory.map["explored-terrain"].keys() and self.hunter.memory.map["explored-terrain"][f"{x},{y}"]
+                curr_visible = vision_map[y - y_start][x - x_start].visible
+                self.hunter.memory.map["explored-terrain"][f"{x},{y}"] = curr_visible or prev_visible
+                self.hunter.engine.game_map.tiles[y][x].explored = curr_visible or prev_visible
 
     def perform(self):
         if type(self.hunter).__name__ == "Hunter":
@@ -131,13 +156,14 @@ class MovementAction():
         # remove reference from origin tile
         orig_tile = self.hunter.engine.game_map.tiles[self.hunter.y][self.hunter.x]
         for entity in orig_tile.entities:
-                if entity == self.hunter:
-                    orig_tile.entities.remove(entity)
+            if entity == self.hunter:
+                orig_tile.entities.remove(entity)
         
         # add reference to destination tile
         self.hunter.engine.game_map.tiles[dest_y][dest_x].entities.append(self.hunter)
 
         self.hunter.move(self.dx, self.dy)
+        self.remember_terrain(self.hunter)
 
 
 class SearchAreaAction():

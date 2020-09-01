@@ -35,4 +35,11 @@ class MouseMovementAction(Action):
             curr_tile.hovered = True
             engine.hovered_tile = curr_tile
             engine.stats_panel.tile = curr_tile
+
+
+class ToggleVisionAction(Action):
+    def perform(self, engine):
+        new_setting = not engine.settings["show-fog"]
+        engine.settings["show-fog"] = new_setting
+        engine.game_map.show_fog = new_setting
         

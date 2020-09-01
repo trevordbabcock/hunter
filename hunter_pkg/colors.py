@@ -1,6 +1,6 @@
 
 def black():
-    return (0,0,0)
+    return (20,20,20)
 
 def dark_gray():
     return (31,31,31)
