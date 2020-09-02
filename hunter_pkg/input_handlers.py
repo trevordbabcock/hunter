@@ -29,7 +29,7 @@ class InputHandler(tcod.event.EventDispatch[act.Action]):
         elif key == tcod.event.K_RIGHT:
             pass
         elif key == tcod.event.K_h:
-            pass
+            action = act.ToggleUIAction()
         elif key == tcod.event.K_f:
             action = act.ToggleVisionAction()
         elif key == tcod.event.K_ESCAPE:

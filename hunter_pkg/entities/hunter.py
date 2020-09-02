@@ -31,6 +31,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
         self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
         self.memory = HunterMemory()
+        self.recent_actions = [] # TODO need to flush this occasionally
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -85,9 +86,11 @@ class HunterAI():
         actions = []
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
+            self.hunter.recent_actions.append("Hunter is hungry!")
             actions.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, bb.BerryBush.__name__, self.decide_where_to_go()))
         else:
             flog.debug("hunter is NOT hungry")
+            self.hunter.recent_actions.append("Hunter is not hungry.")
             actions = self.decide_where_to_go()
 
         return actions
@@ -152,8 +155,9 @@ class MovementAction():
                 self.hunter.engine.game_map.tiles[clmp_y][clmp_x].explored = curr_visible or prev_visible
 
     def perform(self):
-        if type(self.hunter).__name__ == "Hunter":
-            flog.debug("hunter is moving")
+        flog.debug("hunter is moving")
+        self.hunter.recent_actions.append("Hunter is moving.")
+
         dest_x = self.hunter.x + self.dx
         dest_y = self.hunter.y + self.dy
 
@@ -185,6 +189,8 @@ class SearchAreaAction():
 
     def perform(self):
         flog.debug("hunter is searching area")
+        self.hunter.recent_actions.append("Hunter is searching area.")
+
         search_area = self.get_search_area()
         found_entities = []
         i = 0
@@ -199,6 +205,11 @@ class SearchAreaAction():
                             found_entities.append(e)
                             flog.debug("- found an entity: ({},{})".format(e.x, e.y))
                             break
+
+        if len(found_entities) > 0:
+            self.hunter.recent_actions.append(f"Hunter found a {self.search_for_class}.")
+        else:
+            self.hunter.recent_actions.append(f"Hunter couldn't find anything to eat.")
 
         nearest_entity = None
         nearest_entity_distance = None
@@ -250,6 +261,8 @@ class PickAndEatAction():
 
     def perform(self):
         flog.debug("hunter is picking and eating")
+        self.hunter.recent_actions.append("Hunter is picking and eating a berry.")
+
         berry = self.static_entity.pick_berry()
 
         if berry != None:
@@ -261,6 +274,8 @@ class PickAndEatAction():
                     self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
                 else:
                     self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, bb.BerryBush.__name__, self.hunter.ai.decide_where_to_go()))
+            else:
+                self.hunter.recent_actions.append("Hunter is full!")
         else:
             for action in self.hunter.ai.decide_where_to_go():
                 self.hunter.ai.action_queue.append(action)

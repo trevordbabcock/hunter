@@ -46,6 +46,7 @@ def main() -> None:
                 insort(engine.event_queue, event.Event(e))
 
     engine.init_stats_panel()
+    engine.init_action_log_panel()
     engine.init_fog_reveal()
 
     # this is weird

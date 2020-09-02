@@ -3,6 +3,7 @@ from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import berry_bush as bb
 
+
 class UIPanel():
     def __init__(self, x, y, height, width, engine):
         self.x = x
@@ -11,7 +12,6 @@ class UIPanel():
         self.width = width
         self.engine = engine
         self.color = colors.dark_gray()
-        self.tile = None
     
     def get_header_footer_line(self, width):
         chars = []
@@ -22,7 +22,7 @@ class UIPanel():
             else:
                 chars.append(".")
         
-        return WindowTextLine("".join(chars), width)
+        return "".join(chars)
     
     def get_divider_line(self, width):
         chars = []
@@ -30,59 +30,102 @@ class UIPanel():
         for i in range(width):
             chars.append("-")
         
-        return WindowTextLine("".join(chars), width)
+        return "".join(chars)
 
     def render(self, console):
-        window_text_lines = []
+        pass
 
-        console.draw_rect(x=self.x, y=self.y, height=48, width=17, ch=1, bg=self.color)
+    def render_window_text_lines(self, console, lines, x, y, width):
+        for i in range(len(lines)):
+            line_y = i + y
+            WindowTextLine(lines[i], width).render(console, x, line_y, ".")
 
-        window_text_lines.append(self.get_header_footer_line(self.width))
-        window_text_lines.append(WindowTextLine("", self.width))
-        window_text_lines.append(WindowTextLine("Entity: Hunter", self.width))
-        window_text_lines.append(WindowTextLine(f"Hlth {self.engine.hunter.curr_health}/{self.engine.hunter.max_health}", self.width))
-        window_text_lines.append(WindowTextLine("Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger), self.width))
-        window_text_lines.append(WindowTextLine(f"Nrgy {self.engine.hunter.curr_energy}/{self.engine.hunter.max_energy}", self.width))
+    def pad_window_text_lines(self, lines, height):
+        for i in range(height - len(lines)):
+            lines.append("")
+
+        return lines
+
+
+class StatsPanel(UIPanel):
+    def __init__(self, x, y, height, width, engine):
+        super().__init__(x, y, height, width, engine)
+        self.tile = None
+
+    def render(self, console):
+        console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
+
+        lines = [
+            self.get_header_footer_line(self.width),
+            "",
+            "Entity: Hunter",
+            f"Hlth {self.engine.hunter.curr_health}/{self.engine.hunter.max_health}",
+            "Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger),
+            f"Nrgy {self.engine.hunter.curr_energy}/{self.engine.hunter.max_energy}",
+        ]        
 
         for i in range(12):
-            window_text_lines.append(WindowTextLine("", self.width))
+            lines.append("")
 
-        window_text_lines.append(self.get_divider_line(self.width))
-        window_text_lines.append(self.get_divider_line(self.width))
+        lines.append(self.get_divider_line(self.width))
+        lines.append(self.get_divider_line(self.width))
 
         if self.tile != None:
             if self.tile.explored or not self.engine.settings["show-fog"]:
-                window_text_lines.append(WindowTextLine(f"", self.width))
-                window_text_lines.append(WindowTextLine("Tile", self.width))
-                window_text_lines.append(WindowTextLine("Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y), self.width))
-                window_text_lines.append(WindowTextLine("Trrn: {}".format(self.tile.terrain.__class__.__name__), self.width))
+                lines.append(f"")
+                lines.append("Tile")
+                lines.append("Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y))
+                lines.append("Trrn: {}".format(self.tile.terrain.__class__.__name__))
 
                 if len(self.tile.entities) == 0:
-                    window_text_lines.append(WindowTextLine("Entities: None", self.width))
+                    lines.append("Entities: None")
                 else:
-                    window_text_lines.append(WindowTextLine("Entities:", self.width))
+                    lines.append("Entities:")
 
                     for entity in self.tile.entities:
                         if isinstance(entity, htr.Hunter):
-                            window_text_lines.append(WindowTextLine("~Hntr", self.width))
+                            lines.append("~Hntr")
                         elif isinstance(entity, rbt.Rabbit):
-                            window_text_lines.append(WindowTextLine("~Rbbt", self.width))
+                            lines.append("~Rbbt")
                         elif isinstance(entity, bb.BerryBush):
-                            window_text_lines.append(WindowTextLine("~BrryBsh", self.width))
-                            window_text_lines.append(WindowTextLine(f" ~Berries: {entity.num_berries}", self.width))
+                            lines.append("~BrryBsh")
+                            lines.append(f" ~Berries: {entity.num_berries}")
             else:
-                window_text_lines.append(WindowTextLine(f"", self.width))
-                window_text_lines.append(WindowTextLine("???", self.width))
+                lines.append(f"")
+                lines.append("???")
 
-        for i in range(self.height - len(window_text_lines)):
-            window_text_lines.append(WindowTextLine("", self.width))
+        lines = self.pad_window_text_lines(lines, self.height)
+        lines = lines[0:self.height-1]
+        lines.append(self.get_header_footer_line(self.width))
 
-        window_text_lines = window_text_lines[0:self.height-1]
-        window_text_lines.append(self.get_header_footer_line(self.width))
+        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
 
-        for i in range(len(window_text_lines)):
-            line_y = i + 1
-            window_text_lines[i].render(console, self.x, line_y, ".")
+
+class ActionLogPanel(UIPanel):
+    def __init__(self, x, y, height, width, engine):
+        super().__init__(x, y, height, width, engine)
+        self.tile = None
+
+    def render(self, console):
+        lines = []
+
+        console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
+
+        lines.append(self.get_header_footer_line(self.width))
+        lines.append("")
+        lines.append("Hunter Action Log:")
+
+        num_lines_possible = self.height - 5
+        recent_actions_subset = self.engine.hunter.recent_actions[-num_lines_possible:]
+
+        for line in recent_actions_subset:
+            lines.append("".join([" ", line]))
+
+        lines = self.pad_window_text_lines(lines, self.height) 
+        lines = lines[0:self.height-1]
+        lines.append(self.get_header_footer_line(self.width))
+
+        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
 
 
 class WindowTextLine():

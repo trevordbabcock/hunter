@@ -85,7 +85,10 @@ class Engine:
         return intelligent_entities, static_entities
 
     def init_stats_panel(self):
-        self.stats_panel = ui_panel.UIPanel(1, 1, 48, 17, self)
+        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=48, width=17, engine=self)
+
+    def init_action_log_panel(self):
+        self.action_log_panel = ui_panel.ActionLogPanel(x=20, y=36, height=13, width=56, engine=self)
 
     def init_fog_reveal(self):
         vision_map = vsmap.normal()
@@ -117,10 +120,9 @@ class Engine:
             if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:
                 console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
-        # TODO make this hideable
-        if True:
+        if self.settings["show-ui"]:
             self.stats_panel.render(console)
+            self.action_log_panel.render(console)
 
-        #console.print(self.hunter.x, self.hunter.y, self.player.char, fg=self.player.color, bg=self.player.bg_color)
         context.present(console)
         console.clear()

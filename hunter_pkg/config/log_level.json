@@ -1,7 +1,5 @@
 {
     "default": "INFO",
     "overrides": {
-        "hunter.py": "DEBUG",
-        "entity.py": "DEBUG"
     }
 }

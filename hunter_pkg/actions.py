@@ -42,4 +42,9 @@ class ToggleVisionAction(Action):
         new_setting = not engine.settings["show-fog"]
         engine.settings["show-fog"] = new_setting
         engine.game_map.show_fog = new_setting
+
+
+class ToggleUIAction(Action):
+    def perform(self, engine):
+        engine.settings["show-ui"] = not engine.settings["show-ui"]
         

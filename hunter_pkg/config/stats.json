@@ -1,7 +1,8 @@
 {
     "settings": {
         "game-speed": 1.0,
-        "show-fog": false
+        "show-fog": false,
+        "show-ui": true
     },
     "berry-bush": {
         "spawn": 0.02,
@@ -14,8 +15,8 @@
         "nutritional-value": 2
     },
     "hunter": {
-        "x-spawn": 55,
-        "y-spawn": 37,
+        "x-spawn": 45,
+        "y-spawn": 15,
         "vision-distance": 4,
         "max-hunger": 50,
         "max-health": 50,
