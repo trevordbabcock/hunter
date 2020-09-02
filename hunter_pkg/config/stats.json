@@ -14,6 +14,8 @@
         "nutritional-value": 2
     },
     "hunter": {
+        "x-spawn": 55,
+        "y-spawn": 37,
         "vision-distance": 4,
         "max-hunger": 50,
         "max-health": 50,

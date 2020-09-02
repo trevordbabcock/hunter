@@ -35,7 +35,7 @@ def main() -> None:
     game_map = gm.GameMap(map_width, map_height, stats.Stats.map()["settings"]["show-fog"])
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
-    hunter = htr.Hunter(engine, int(map_width / 2) - 5, int(map_height / 2) - 5)
+    hunter = htr.Hunter(engine, stats.Stats.map()["hunter"]["x-spawn"], stats.Stats.map()["hunter"]["y-spawn"])
     engine.intelligent_entities, engine.static_entities = engine.spawn_entities()
     engine.hunter = hunter
     engine.intelligent_entities.append(hunter)

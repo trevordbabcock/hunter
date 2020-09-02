@@ -7,6 +7,8 @@ from random import randrange
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import berry_bush as bb
 
+from hunter_pkg.helpers import math
+
 from hunter_pkg import colors
 from hunter_pkg import flogging
 from hunter_pkg import log_level
@@ -137,10 +139,17 @@ class MovementAction():
             for x in range(x_start, x_end+1):
                 # This is confusing. Basic idea is to apply the vision map to the hunter's memory and the game map, but only
                 # set "explored" to True, never to False i.e. don't let the corners of a circular vision map "unexplore" tiles.
-                prev_visible = f"{x},{y}" in self.hunter.memory.map["explored-terrain"].keys() and self.hunter.memory.map["explored-terrain"][f"{x},{y}"]
-                curr_visible = vision_map[y - y_start][x - x_start].visible
-                self.hunter.memory.map["explored-terrain"][f"{x},{y}"] = curr_visible or prev_visible
-                self.hunter.engine.game_map.tiles[y][x].explored = curr_visible or prev_visible
+                # And clamp everything so we dont accidentally affect the opposite side of the map.
+                clamp_width = self.hunter.engine.game_map.width-1
+                clamp_height = self.hunter.engine.game_map.height-1
+                rel_x = math.clamp(x - x_start, 0, clamp_width)
+                rel_y = math.clamp(y - y_start, 0, clamp_height)
+                clmp_x = math.clamp(x, 0, clamp_width)
+                clmp_y = math.clamp(y, 0, clamp_height)
+                prev_visible = f"{clmp_x},{clmp_y}" in self.hunter.memory.map["explored-terrain"].keys() and self.hunter.memory.map["explored-terrain"][f"{clmp_x},{clmp_y}"]
+                curr_visible = vision_map[rel_y][rel_x].visible
+                self.hunter.memory.map["explored-terrain"][f"{clmp_x},{clmp_y}"] = curr_visible or prev_visible
+                self.hunter.engine.game_map.tiles[clmp_y][clmp_x].explored = curr_visible or prev_visible
 
     def perform(self):
         if type(self.hunter).__name__ == "Hunter":
