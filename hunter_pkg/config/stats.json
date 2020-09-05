@@ -2,7 +2,23 @@
     "settings": {
         "game-speed": 1.0,
         "show-fog": false,
-        "show-ui": true
+        "show-ui": true,
+        "game-time": {
+            "initial": 5800.0,
+            "factors": {
+                "night": 2.4,
+                "morning": 2.0,
+                "afternoon": 2.0,
+                "evening": 2.0
+            },
+            "thresholds": {
+                "max": 23999.0,
+                "morning": 6000.0,
+                "afternoon": 12000.0,
+                "evening": 17000.0,
+                "night": 20000.0
+            }
+        }
     },
     "berry-bush": {
         "spawn": 0.02,

@@ -29,6 +29,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 class Engine:
     def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
         self.game_speed = stats.Stats.map()["settings"]["game-speed"]
+        self.game_time = stats.Stats.map()["settings"]["game-time"]["initial"]
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
@@ -52,6 +53,33 @@ class Engine:
             self.event_queue.append(ev.Event(entity))
 
         self.event_queue = deque(sorted(self.event_queue))
+
+    def advance_game_time(self):
+        prev_time = self.game_time
+        prev_time_of_day = self.get_time_of_day(prev_time)
+        new_time = self.game_time + stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day]
+        new_time_of_day = self.time_of_day = self.get_time_of_day(new_time)
+
+        if new_time_of_day != prev_time_of_day:
+            flog.debug(f"it's now {new_time_of_day}")
+
+        if new_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
+            flog.debug("it's a new day!")
+            self.game_time = 0
+        else:
+            self.game_time = new_time
+    
+    def get_time_of_day(self, time):
+        if time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["night"]:
+            return "night"
+        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["evening"]:
+            return "evening"
+        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["afternoon"]:
+            return "afternoon"
+        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["morning"]:
+            return "morning"
+        else:
+            return "night"
 
     def process_events(self):
         while(len(self.event_queue) > 0):
@@ -114,7 +142,7 @@ class Engine:
                 self.hunter.engine.game_map.tiles[clmp_y][clmp_x].explored = curr_visible or prev_visible
 
     def render(self, console: Console, context: Context) -> None:
-        self.game_map.render(console)
+        self.game_map.render(console, self.time_of_day)
 
         for entity in self.intelligent_entities:
             if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:

@@ -13,10 +13,11 @@ from hunter_pkg import event
 from hunter_pkg import flogging
 from hunter_pkg import game_map as gm
 from hunter_pkg import input_handlers
+from hunter_pkg import log_level
 from hunter_pkg import stats
 
 
-flog = flogging.Flogging.get(__file__, flogging.INFO)
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 def main() -> None:
     stats.Stats.map(sys.argv[1])
@@ -66,6 +67,7 @@ def main() -> None:
             
             inputs = tcod.event.get()
             engine.handle_inputs(inputs)
+            engine.advance_game_time()
             engine.process_events()
             engine.render(console=root_console, context=context)
 
@@ -73,6 +75,8 @@ def main() -> None:
             current = time.time()
             elapsed_time = current - previous
             sleep_time = seconds_per_frame - elapsed_time
+            #flog.debug(elapsed_time)
+            #flog.debug(sleep_time)
 
             if(sleep_time > 0):
                 time.sleep(sleep_time)

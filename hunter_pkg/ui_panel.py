@@ -1,3 +1,5 @@
+from math import floor
+
 from hunter_pkg import colors
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
@@ -31,6 +33,9 @@ class UIPanel():
             chars.append("-")
         
         return "".join(chars)
+    
+    def center_line(self, width, line):
+        return " " * floor((width - 2 - len(line))/2) + line
 
     def render(self, console):
         pass
@@ -52,11 +57,24 @@ class StatsPanel(UIPanel):
         super().__init__(x, y, height, width, engine)
         self.tile = None
 
+    def format_game_time(self, game_time):
+        """
+        Format game_time from int to str.
+        Example: 20900 to "20:50"
+        """
+        time_str = "{:04.0f}".format(game_time/10)
+        # this converts hour subdivisions from 100 to 60 (minutes)
+        converted_minute_int = floor(int(time_str[2] + time_str[3])/100 * 60)
+        minute_str = str(converted_minute_int)
+        return "".join([time_str[0], time_str[1], ":", minute_str.zfill(2)])
+
     def render(self, console):
         console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
         lines = [
             self.get_header_footer_line(self.width),
+            self.center_line(self.width, self.engine.time_of_day.capitalize()),
+            self.center_line(self.width, f"{self.format_game_time(self.engine.game_time)}"),
             "",
             "Entity: Hunter",
             f"Hlth {self.engine.hunter.curr_health}/{self.engine.hunter.max_health}",

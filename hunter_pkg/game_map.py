@@ -52,10 +52,10 @@ class GameMap:
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
 
-    def render(self, console: Console) -> None:
+    def render(self, console, time_of_day):
         for y in range(self.height):
             for x in range(self.width):
-                console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt()
+                console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt(time_of_day)
 
 class Tile:
     def __init__(self, game_map, terrain, x, y):
@@ -67,25 +67,25 @@ class Tile:
         self.hovered = False
         self.explored = False
 
-    def get_graphic_dt(self):
+    def get_graphic_dt(self, time_of_day):
         if self.game_map.show_fog:
             if self.hovered:
                 if self.explored:
-                    return self.terrain.get_graphic_dt(None, None, colors.light_gray())
+                    return self.terrain.get_graphic_dt(time_of_day, None, None, colors.light_gray())
                 else:
-                    return self.terrain.get_graphic_dt(ord(" "), None, colors.light_gray())
+                    return self.terrain.get_graphic_dt(time_of_day, ord(" "), None, colors.light_gray())
             elif self.explored:
                 for entity in self.entities:
                     if isinstance(entity, bb.BerryBush):
-                        return self.terrain.get_graphic_dt(None, None, colors.dark_green())
+                        return self.terrain.get_graphic_dt(time_of_day, None, None, entity.bg_color(time_of_day))
             else:
                 return (ord(" "), colors.black(), colors.black())
         else:
             if self.hovered:
-                return self.terrain.get_graphic_dt(None, None, colors.light_gray())
+                return self.terrain.get_graphic_dt(time_of_day, None, None, colors.light_gray())
 
             for entity in self.entities:
                 if isinstance(entity, bb.BerryBush):
-                    return self.terrain.get_graphic_dt(None, None, colors.dark_green())
+                    return self.terrain.get_graphic_dt(time_of_day, None, None, colors.dark_green(time_of_day))
 
-        return self.terrain.get_graphic_dt(None, None, None) # gross as hell
+        return self.terrain.get_graphic_dt(time_of_day, None, None, None) # gross as hell
