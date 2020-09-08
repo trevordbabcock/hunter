@@ -51,7 +51,7 @@
         "update-interval-step": 100
     },
     "rabbit": {
-        "spawn": 0.005,
+        "spawn": 0.01,
         "update-interval-start": 1000,
         "update-interval-end" :3000,
         "update-interval-step": 100

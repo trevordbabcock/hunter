@@ -31,7 +31,9 @@ class Hunter(base_entity.IntelligentEntity):
         self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
         self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
         self.memory = HunterMemory()
-        self.recent_actions = [] # TODO need to flush this occasionally
+        self.recent_actions = []
+        self.max_recent_actions = 100
+        self.min_recent_actions = 30
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -60,7 +62,15 @@ class Hunter(base_entity.IntelligentEntity):
             self.die()
         else:
             self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
+            self.try_flush_recent_actions()
+    
+    def try_flush_recent_actions(self):
+        #flog.debug(f"hunter recent_actions: {len(self.recent_actions)}")
 
+        if len(self.recent_actions) > self.max_recent_actions:
+            self.recent_actions = self.recent_actions[self.max_recent_actions-self.min_recent_actions:]
+            flog.debug("flushed hunter recent_actions")
+        
 
 class HunterAI():
     def __init__(self, hunter):
