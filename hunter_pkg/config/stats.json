@@ -22,10 +22,13 @@
     },
     "berry-bush": {
         "spawn": 0.02,
-        "update-interval": 25000,
+        "update-interval": 30000,
         "spawn-min-berries": 5,
         "spawn-max-berries": 10,
-        "grow-berries": 1
+        "grow-min-berries": 1,
+        "grow-max-berries": 1,
+        "min-berry-limit": 12,
+        "max-berry-limit": 20
     },
     "berry": {
         "nutritional-value": 2
@@ -48,7 +51,7 @@
         "update-interval-step": 100
     },
     "rabbit": {
-        "spawn": 0.01,
+        "spawn": 0.005,
         "update-interval-start": 1000,
         "update-interval-end" :3000,
         "update-interval-step": 100

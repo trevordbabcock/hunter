@@ -82,6 +82,7 @@ class Engine:
             return "night"
 
     def process_events(self):
+        flog.debug(f"event_queue len: {len(self.event_queue)}")
         while(len(self.event_queue) > 0):
             event = self.event_queue[0]
 

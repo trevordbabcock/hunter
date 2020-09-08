@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections import deque
 from numpy.random import randint
-from random import randrange
 
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import berry_bush as bb
+from hunter_pkg.helpers import rng
 
 from hunter_pkg.helpers import math
 
@@ -97,7 +97,7 @@ class HunterAI():
 
     def decide_where_to_go(self):
         direction = randint(4)
-        num_actions = randrange(3, 8, 1)
+        num_actions = rng.range(3, 8, 1)
         actions = []
 
         if(direction == 0):

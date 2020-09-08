@@ -40,17 +40,11 @@ def main() -> None:
     engine.intelligent_entities, engine.static_entities = engine.spawn_entities()
     engine.hunter = hunter
     engine.intelligent_entities.append(hunter)
-    
-    for row in game_map.tiles:
-        for tile in row:
-            for e in tile.entities:
-                insort(engine.event_queue, event.Event(e))
 
     engine.init_stats_panel()
     engine.init_action_log_panel()
     engine.init_fog_reveal()
 
-    # this is weird
     engine.init_event_queue(engine.intelligent_entities)
     engine.init_event_queue(engine.static_entities)
 

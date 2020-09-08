@@ -1,6 +1,7 @@
 import numpy.random as nprand
-from random import randrange
 from typing import Tuple
+
+from hunter_pkg.helpers import rng
 
 from hunter_pkg import colors
 from hunter_pkg import flogging
@@ -34,7 +35,7 @@ class IntelligentEntity(Entity):
         self.update_interval_step = update_interval_step
 
     def get_update_interval(self):
-        return (randrange(self.update_interval_start, self.update_interval_stop, self.update_interval_step) * 0.001) * (1.0/self.engine.game_speed)
+        return (rng.range(self.update_interval_start, self.update_interval_stop, self.update_interval_step) * 0.001) * (1.0/self.engine.game_speed)
 
     def requeue(self):
         return self.alive
