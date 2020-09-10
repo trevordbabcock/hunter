@@ -1,6 +1,8 @@
 from tcod.console import Console
 
 from hunter_pkg.entities import berry_bush as bb
+from hunter_pkg.entities import camp as cp
+
 from hunter_pkg import colors
 from hunter_pkg import terrain
 
@@ -67,25 +69,34 @@ class Tile:
         self.hovered = False
         self.explored = False
 
+    # TODO fix this; it is nightmare fuel
     def get_graphic_dt(self, time_of_day):
         if self.game_map.show_fog:
             if self.hovered:
                 if self.explored:
+                    for entity in self.entities:
+                        if isinstance(entity, cp.Camp):
+                            return self.terrain.get_graphic_dt(time_of_day, entity.char, entity.fg_color, entity.bg_color)
+
                     return self.terrain.get_graphic_dt(time_of_day, None, None, colors.light_gray())
                 else:
                     return self.terrain.get_graphic_dt(time_of_day, ord(" "), None, colors.light_gray())
             elif self.explored:
                 for entity in self.entities:
-                    if isinstance(entity, bb.BerryBush):
+                    if isinstance(entity, cp.Camp):
+                        return self.terrain.get_graphic_dt(time_of_day, entity.char, entity.fg_color, entity.bg_color)
+                    elif isinstance(entity, bb.BerryBush):
                         return self.terrain.get_graphic_dt(time_of_day, None, None, entity.bg_color(time_of_day))
             else:
                 return (ord(" "), colors.black(), colors.black())
         else:
+            for entity in self.entities:
+                if isinstance(entity, cp.Camp):
+                    return self.terrain.get_graphic_dt(time_of_day, entity.char, entity.fg_color, entity.bg_color)
+                elif isinstance(entity, bb.BerryBush):
+                    return self.terrain.get_graphic_dt(time_of_day, None, None, colors.dark_green(time_of_day))
+
             if self.hovered:
                 return self.terrain.get_graphic_dt(time_of_day, None, None, colors.light_gray())
-
-            for entity in self.entities:
-                if isinstance(entity, bb.BerryBush):
-                    return self.terrain.get_graphic_dt(time_of_day, None, None, colors.dark_green(time_of_day))
 
         return self.terrain.get_graphic_dt(time_of_day, None, None, None) # gross as hell

@@ -5,6 +5,7 @@ import sys
 import time
 import tcod
 
+from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import hunter as htr
 
 from hunter_pkg import colors
@@ -37,6 +38,9 @@ def main() -> None:
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
     hunter = htr.Hunter(engine, stats.Stats.map()["hunter"]["x-spawn"], stats.Stats.map()["hunter"]["y-spawn"])
+    camp = cp.Camp(engine, stats.Stats.map()["hunter"]["camp"]["x-spawn"], stats.Stats.map()["hunter"]["camp"]["y-spawn"])
+    game_map.tiles[camp.y][camp.x].entities.append(camp)
+
     engine.intelligent_entities, engine.static_entities = engine.spawn_entities()
     engine.hunter = hunter
     engine.intelligent_entities.append(hunter)

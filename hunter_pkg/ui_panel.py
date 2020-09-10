@@ -1,9 +1,11 @@
 from math import floor
 
-from hunter_pkg import colors
+from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import berry_bush as bb
+
+from hunter_pkg import colors
 
 
 class UIPanel():
@@ -108,6 +110,10 @@ class StatsPanel(UIPanel):
                         elif isinstance(entity, bb.BerryBush):
                             lines.append("~BrryBsh")
                             lines.append(f" ~Berries: {entity.num_berries}")
+                        elif isinstance(entity, cp.Camp):
+                            lines.append("~Camp")
+                            for component in entity.components:
+                                lines.append(f" ~{component.name()}")
             else:
                 lines.append(f"")
                 lines.append("???")
