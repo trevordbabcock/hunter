@@ -30,6 +30,7 @@ class Engine:
     def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
         self.game_speed = stats.Stats.map()["settings"]["game-speed"]
         self.game_time = stats.Stats.map()["settings"]["game-time"]["initial"]
+        self.num_days = 0
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
@@ -57,7 +58,7 @@ class Engine:
     def advance_game_time(self):
         prev_time = self.game_time
         prev_time_of_day = self.get_time_of_day(prev_time)
-        new_time = self.game_time + stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day]
+        new_time = self.game_time + (stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day] * self.game_speed)
         new_time_of_day = self.time_of_day = self.get_time_of_day(new_time)
 
         if new_time_of_day != prev_time_of_day:
@@ -66,6 +67,10 @@ class Engine:
         if new_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
             self.game_time = 0
+            self.num_days += 1
+
+            if self.hunter.alive:
+                self.hunter.days_survived += 1
         else:
             self.game_time = new_time
     

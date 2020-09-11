@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections import deque
+from datetime import timedelta
 from numpy.random import randint
+from time import time
 
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import berry_bush as bb
@@ -34,6 +36,8 @@ class Hunter(base_entity.IntelligentEntity):
         self.recent_actions = []
         self.max_recent_actions = 100
         self.min_recent_actions = 30
+        self.days_survived = 0
+        self.rt_spawn_time = time()
     
     def can_see(self, entity):
         vd = self.vision_distance
@@ -70,6 +74,12 @@ class Hunter(base_entity.IntelligentEntity):
         if len(self.recent_actions) > self.max_recent_actions:
             self.recent_actions = self.recent_actions[self.max_recent_actions-self.min_recent_actions:]
             flog.debug("flushed hunter recent_actions")
+
+    def get_rt_time_alive(self):
+        rt_time_alive = timedelta(seconds=round(time() - self.rt_spawn_time))
+        flog.debug(f"time alive: {rt_time_alive}")
+
+        return rt_time_alive
         
 
 class HunterAI():
