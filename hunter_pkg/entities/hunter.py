@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import deque
 from datetime import timedelta
+import json
 from numpy.random import randint
 from time import time
 
@@ -25,6 +26,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
+        self.name = self.get_name()
         self.alive = True
         self.max_hunger = stats.Stats.map()["hunter"]["max-hunger"]
         self.max_health = stats.Stats.map()["hunter"]["max-health"]
@@ -40,6 +42,12 @@ class Hunter(base_entity.IntelligentEntity):
         self.days_survived = 0
         self.rt_spawn_time = time()
     
+    def get_name(self):
+        with open("resources/names.json") as file:
+            flog.debug("opened a file")
+            names = json.load(file)
+            return names["names"][rng.randint(len(names["names"]))]
+
     def can_see(self, entity):
         vd = self.vision_distance
         visible_x = (self.x - vd) < entity.x and entity.x < (self.x + vd)
