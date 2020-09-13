@@ -40,9 +40,15 @@ def main() -> None:
     hunter = htr.Hunter(engine, stats.Stats.map()["hunter"]["x-spawn"], stats.Stats.map()["hunter"]["y-spawn"])
     camp = cp.Camp(engine, stats.Stats.map()["hunter"]["camp"]["x-spawn"], stats.Stats.map()["hunter"]["camp"]["y-spawn"])
     game_map.tiles[camp.y][camp.x].entities.append(camp)
+    # hard-coding knowledge of camp for now
+    hunter.memory.map["camp"] = {
+        "x": camp.x,
+        "y": camp.y
+    }
 
     engine.intelligent_entities, engine.static_entities = engine.spawn_entities()
     engine.hunter = hunter
+    engine.camp = camp
     engine.intelligent_entities.append(hunter)
 
     engine.init_stats_panel()

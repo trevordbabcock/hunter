@@ -83,7 +83,7 @@ class StatsPanel(UIPanel):
             ""
             f"Hlth {self.engine.hunter.curr_health}/{self.engine.hunter.max_health}",
             "Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger),
-            f"Nrgy {self.engine.hunter.curr_energy}/{self.engine.hunter.max_energy}",
+            "Nrgy {:02.0f}/{}".format(self.engine.hunter.curr_energy, self.engine.hunter.max_energy),
         ]        
 
         for i in range(12):

@@ -44,6 +44,7 @@ class FireState(enum.Enum):
 class Bedroll(CampComponent):
     def __init__(self):
         self.occupied = False
+        self.comfort = stats.Stats.map()["bedroll"]["comfort"]
 
 
 class WoodPile(CampComponent):

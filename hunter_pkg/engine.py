@@ -37,6 +37,7 @@ class Engine:
         self.game_map = game_map
         self.event_queue = deque()
         self.hunter = None
+        self.camp = None
         self.hovered_tile = None
         self.settings = stats.Stats.map()["settings"]
 

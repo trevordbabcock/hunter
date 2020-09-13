@@ -5,11 +5,12 @@ from datetime import timedelta
 from numpy.random import randint
 from time import time
 
+from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import berry_bush as bb
-from hunter_pkg.helpers import rng
 
 from hunter_pkg.helpers import math
+from hunter_pkg.helpers import rng
 
 from hunter_pkg import colors
 from hunter_pkg import flogging
@@ -56,6 +57,9 @@ class Hunter(base_entity.IntelligentEntity):
     def is_still_hungry(self):
         return self.curr_hunger < stats.Stats.map()["hunter"]["hunger-threshold-high"]
 
+    def is_tired(self):
+        return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"]
+
     def die(self):
         flog.debug("omg hunter died")
         self.alive = False
@@ -66,6 +70,7 @@ class Hunter(base_entity.IntelligentEntity):
             self.die()
         else:
             self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
+            self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
             self.try_flush_recent_actions()
     
     def try_flush_recent_actions(self):
@@ -80,6 +85,17 @@ class Hunter(base_entity.IntelligentEntity):
         flog.debug(f"time alive: {rt_time_alive}")
 
         return rt_time_alive
+
+    def path_to(self, x, y):
+        actions = []
+        path = pathfinder.get_path(self.engine.game_map.path_map, (self.y, self.x), (y, x))
+        previous_position = (self.y, self.x)
+
+        for i in range(1, len(path)):
+            actions.append(MovementAction(self, (path[i][0] - previous_position[0]), (path[i][1] - previous_position[1])))
+            previous_position = (path[i][0], path[i][1])
+
+        return actions
         
 
 class HunterAI():
@@ -97,6 +113,8 @@ class HunterAI():
                 action.perform()
             elif(isinstance(action, SearchAreaAction)):
                 action.perform()
+            elif(isinstance(action, SleepAction)):
+                action.perform()
         else:
             actions = self.decide_what_to_do()
             for a in actions:
@@ -108,32 +126,35 @@ class HunterAI():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
             actions.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, bb.BerryBush.__name__, self.decide_where_to_go()))
+        elif self.hunter.is_tired():
+            flog.debug("hunter is TIRED")
+            self.hunter.recent_actions.append("Hunter is tired!")
+            self.hunter.recent_actions.append("Hunter is going to camp.")
+
+            for action in self.hunter.path_to(self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]):
+                self.hunter.ai.action_queue.append(action)
+            
+            for component in self.hunter.engine.camp.components:
+                if isinstance(component, cp.Bedroll):
+                    self.hunter.ai.action_queue.append(SleepAction(self.hunter, component))
+                    break
         else:
-            flog.debug("hunter is NOT hungry")
-            self.hunter.recent_actions.append("Hunter is not hungry.")
+            flog.debug("hunter is NOT hungry or tired")
+            self.hunter.recent_actions.append("Hunter is not hungry or tired.")
             actions = self.decide_where_to_go()
 
         return actions
 
     def decide_where_to_go(self):
-        direction = randint(4)
-        num_actions = rng.range(3, 8, 1)
-        actions = []
+        dist = stats.Stats.map()["hunter"]["roam-distance"]
 
-        if(direction == 0):
-            for i in range(num_actions):
-                actions.append(MovementAction(self.hunter, -1, 0))
-        elif(direction == 1):
-            for i in range(num_actions):
-                actions.append(MovementAction(self.hunter, 1, 0))
-        elif(direction == 2):
-            for i in range(num_actions):
-                actions.append(MovementAction(self.hunter, 0, -1))
-        elif(direction == 3):
-            for i in range(num_actions):
-                actions.append(MovementAction(self.hunter, 0, 1))
-        
-        return actions
+        while(True):    
+            dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.height)
+            dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.width)
+
+            if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
+                flog.debug(f"found a destination: ({dest_x},{dest_y})")
+                return self.hunter.path_to(dest_x, dest_y)
 
 
 class HunterMemory():
@@ -245,13 +266,9 @@ class SearchAreaAction():
                     nearest_entity_distance = distance
 
         if nearest_entity != None:
-            path = pathfinder.get_path(self.game_map.path_map, (self.hunter.y, self.hunter.x), (nearest_entity.y, nearest_entity.x))
-            previous_position = (self.hunter.y, self.hunter.x)
-
-            for i in range(1, len(path)):
-                self.hunter.ai.action_queue.append(MovementAction(self.hunter, (path[i][0] - previous_position[0]), (path[i][1] - previous_position[1])))
-                previous_position = (path[i][0], path[i][1])
-
+            for action in self.hunter.path_to(nearest_entity.x, nearest_entity.y):
+                self.hunter.ai.action_queue.append(action)
+            
             self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, nearest_entity))
         else:
             for action in self.plan_b:
@@ -299,3 +316,21 @@ class PickAndEatAction():
         else:
             for action in self.hunter.ai.decide_where_to_go():
                 self.hunter.ai.action_queue.append(action)
+
+class SleepAction():
+    def __init__(self, hunter, bed):
+        self.hunter = hunter
+        self.bed = bed
+
+    def perform(self):
+        if self.hunter.curr_energy >= self.hunter.max_energy:
+            # wake up
+            self.hunter.recent_actions.append("Hunter woke up.")
+            self.bed.occupied = False
+            # grab a brush and put a little makeup
+            pass
+        else:
+            self.hunter.recent_actions.append("Hunter is sleeping.")
+            self.bed.occupied = True
+            self.hunter.curr_energy = math.clamp(self.hunter.curr_energy + self.bed.comfort, 0, (self.hunter.max_energy + stats.Stats.map()["hunter"]["energy-loss"])) # the energy-loss part is a filthy hack
+            self.hunter.ai.action_queue.append(SleepAction(self.hunter, self.bed))

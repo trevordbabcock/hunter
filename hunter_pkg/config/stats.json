@@ -33,6 +33,9 @@
     "berry": {
         "nutritional-value": 2
     },
+    "bedroll": {
+        "comfort": 5
+    },
     "fire-pit": {
         "duration": 120000
     },
@@ -40,15 +43,18 @@
         "x-spawn": 47,
         "y-spawn": 10,
         "vision-distance": 4,
+        "roam-distance": 8,
         "max-hunger": 50,
         "max-health": 50,
         "max-energy": 50,
-        "starting-hunger": 10,
+        "starting-hunger": 30,
         "starting-health": 50,
-        "starting-energy": 50,
+        "starting-energy": 30,
         "hunger-loss": 0.25,
+        "energy-loss": 0.1,
         "hunger-threshold-low": 35,
         "hunger-threshold-high": 50,
+        "tired-threshold": 15,
         "update-interval-start": 1000,
         "update-interval-end" :1500,
         "update-interval-step": 100,
