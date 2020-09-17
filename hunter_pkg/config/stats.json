@@ -36,6 +36,10 @@
     "bedroll": {
         "comfort": 5
     },
+    "bow": {
+        "accuracy": 0.9,
+        "damage": 10
+    },
     "fire-pit": {
         "duration": 120000
     },
@@ -58,6 +62,7 @@
         "update-interval-start": 1000,
         "update-interval-end" :1500,
         "update-interval-step": 100,
+        "accuracy": 0.9,
         "camp": {
             "x-spawn": 49,
             "y-spawn": 10
@@ -67,6 +72,9 @@
         "spawn": 0.01,
         "update-interval-start": 1000,
         "update-interval-end" :3000,
-        "update-interval-step": 100
+        "update-interval-step": 100,
+        "max-health": 5,
+        "starting-health": 5,
+        "nutritional-value": 12
     }
 }

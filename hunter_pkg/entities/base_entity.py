@@ -41,7 +41,21 @@ class IntelligentEntity(Entity):
         return self.alive
 
     def eat(self, entity):
-        pass
+        raise NotImplementedError
+
+    def die(self):
+        raise NotImplementedError
+
+    @property
+    def curr_health(self):
+        return self.__currhealth
+    
+    @curr_health.setter
+    def curr_health(self, curr_health):
+        self.__currhealth = curr_health
+
+        if self.curr_health <= 0:
+            self.die()
 
 
 class StaticEntity():

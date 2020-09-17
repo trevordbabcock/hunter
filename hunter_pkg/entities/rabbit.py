@@ -12,7 +12,20 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 class Rabbit(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), RabbitAI(self), [stats.Stats.map()["rabbit"]["update-interval-start"], stats.Stats.map()["rabbit"]["update-interval-end"]], stats.Stats.map()["rabbit"]["update-interval-step"])
+        self.alive = True
+        self.max_health = stats.Stats.map()["rabbit"]["max-health"]
+        self.curr_health = stats.Stats.map()["rabbit"]["starting-health"]
+        self.nutritional_value = stats.Stats.map()["rabbit"]["nutritional-value"]
     
+    def die(self):
+        flog.debug("a rabbit died")
+        self.alive = False
+        self.char = "x"
+
+    def consume(self):
+        self.engine.game_map.tiles[self.y][self.x].entities.remove(self)
+        self.engine.intelligent_entities.remove(self)
+
     def progress(self):
         pass
 
@@ -44,21 +57,22 @@ class MovementAction():
         self.dy = dy
 
     def perform(self):
-        dest_x = self.rabbit.x + self.dx
-        dest_y = self.rabbit.y + self.dy
+        if self.rabbit.alive:
+            dest_x = self.rabbit.x + self.dx
+            dest_y = self.rabbit.y + self.dy
 
-        if not self.rabbit.engine.game_map.in_bounds(dest_x, dest_y):
-            return  # Destination is out of bounds.
-        if not self.rabbit.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-            return  # Destination is blocked by a tile.
+            if not self.rabbit.engine.game_map.in_bounds(dest_x, dest_y):
+                return  # Destination is out of bounds.
+            if not self.rabbit.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
+                return  # Destination is blocked by a tile.
 
-        # remove reference from origin tile
-        orig_tile = self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x]
-        for entity in orig_tile.entities:
-            if entity == self.rabbit:
-                orig_tile.entities.remove(entity)
-        
-        # add reference to destination tile
-        self.rabbit.engine.game_map.tiles[dest_y][dest_x].entities.append(self.rabbit)
+            # remove reference from origin tile
+            orig_tile = self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x]
+            for entity in orig_tile.entities:
+                if entity == self.rabbit:
+                    orig_tile.entities.remove(entity)
+            
+            # add reference to destination tile
+            self.rabbit.engine.game_map.tiles[dest_y][dest_x].entities.append(self.rabbit)
 
-        self.rabbit.move(self.dx, self.dy)
+            self.rabbit.move(self.dx, self.dy)

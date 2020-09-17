@@ -31,3 +31,6 @@ class BerryBush(base_entity.StaticEntity):
 class Berry():
     def __init__(self):
         self.nutritional_value = stats.Stats.map()["berry"]["nutritional-value"]
+
+    def consume(self):
+        pass

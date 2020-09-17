@@ -1,4 +1,4 @@
-from numpy.random import randint as _randint
+import numpy.random as random
 from random import randrange
 
 def range(min, max, step=1):
@@ -7,5 +7,11 @@ def range(min, max, step=1):
     else:
         return randrange(min, max, step)
 
+def rand():
+    """
+    Random percentage
+    """
+    return random.rand()
+
 def randint(integer):
-    return _randint(integer)
+    return random.randint(integer)
