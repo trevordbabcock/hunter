@@ -20,6 +20,7 @@ from hunter_pkg import flogging
 from hunter_pkg import log_level
 from hunter_pkg import pathfinder
 from hunter_pkg import stats
+from hunter_pkg import status_effects as stfx
 from hunter_pkg import vision_map as vsmap
 
 
@@ -30,6 +31,7 @@ class Hunter(base_entity.IntelligentEntity):
         super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
         self.name = self.get_name()
         self.alive = True
+        self.asleep = False
         self.max_hunger = stats.Stats.map()["hunter"]["max-hunger"]
         self.max_health = stats.Stats.map()["hunter"]["max-health"]
         self.max_energy = stats.Stats.map()["hunter"]["max-energy"]
@@ -73,18 +75,46 @@ class Hunter(base_entity.IntelligentEntity):
     def is_tired(self):
         return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"]
 
+    def should_wake_up(self):
+        chance_to_wake_up = (self.curr_health / self.max_health) * 0.13
+        roll = rng.rand()
+
+        # flog.debug("---chance to wake up---")
+        # flog.debug(f"health: {self.curr_health}")
+        # flog.debug(f"chance: {chance_to_wake_up}")
+        # flog.debug(f"roll: {roll})")
+        # flog.debug(f"res: {chance_to_wake_up > roll}")
+
+        return chance_to_wake_up > roll
+
     def die(self):
         flog.debug("omg hunter died")
         self.alive = False
         self.char = "X"
 
     def progress(self):
-        if self.curr_hunger == 0:
-            self.die()
-        else:
-            self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
-            self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
-            self.try_flush_recent_actions()
+        if self.is_affected_by(stfx.Starvation):
+            self.curr_health -= stats.Stats.map()["hunter"]["starvation-health-loss"]
+
+        if self.is_affected_by(stfx.SleepDeprivation):
+            self.curr_health -= stats.Stats.map()["hunter"]["sleep-deprivation-health-loss"]
+            chance_to_pass_out = (1 - (self.curr_health / self.max_health)) * 0.1
+            roll = rng.rand()
+
+            # flog.debug("---chance to pass out---")
+            # flog.debug(f"health: {self.curr_health}")
+            # flog.debug(f"chance: {chance_to_pass_out}")
+            # flog.debug(f"roll: {roll}")
+            # flog.debug(f"res: {chance_to_pass_out > roll}")
+
+            if chance_to_pass_out > roll and not self.asleep:
+                self.recent_actions.append("Hunter passed out from sleep deprivation!")
+                self.ai.clear_action_queue()
+                self.ai.action_queue.append(SleepAction(self, None))
+        
+        self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
+        self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
+        self.try_flush_recent_actions()
     
     def try_flush_recent_actions(self):
         #flog.debug(f"hunter recent_actions: {len(self.recent_actions)}")
@@ -109,7 +139,7 @@ class Hunter(base_entity.IntelligentEntity):
             previous_position = (path[i][0], path[i][1])
 
         return actions
-        
+
 
 class HunterAI():
     def __init__(self, hunter):
@@ -124,6 +154,9 @@ class HunterAI():
             actions = self.decide_what_to_do()
             for a in actions:
                 self.action_queue.append(a)
+    
+    def clear_action_queue(self):
+        self.action_queue = deque()
 
     def decide_what_to_do(self):
         actions = []
@@ -348,16 +381,27 @@ class SleepAction():
         self.bed = bed
 
     def perform(self):
-        if self.hunter.curr_energy >= self.hunter.max_energy:
+        if self.hunter.curr_energy >= (self.hunter.max_energy - stats.Stats.map()["hunter"]["energy-loss"]) or self.hunter.should_wake_up():
             # wake up
             self.hunter.recent_actions.append("Hunter woke up.")
-            self.bed.occupied = False
+            self.hunter.asleep = False
             # grab a brush and put a little makeup
-            pass
+
+            if self.bed != None:
+                self.bed.occupied = False
         else:
             self.hunter.recent_actions.append("Hunter is sleeping.")
-            self.bed.occupied = True
-            self.hunter.curr_energy = math.clamp(self.hunter.curr_energy + self.bed.comfort, 0, (self.hunter.max_energy + stats.Stats.map()["hunter"]["energy-loss"])) # the energy-loss part is a filthy hack
+            self.hunter.asleep = True
+
+            if self.bed != None:
+                self.bed.occupied = True
+                comfort = self.bed.comfort
+            else:
+                comfort = stats.Stats.map()["ground"]["sleep-comfort"]
+
+            self.hunter.curr_energy += comfort
+            self.hunter.curr_health += stats.Stats.map()["hunter"]["sleep-health-gain"] if not self.bed == None else stats.Stats.map()["ground"]["sleep-health-gain"]
+
             self.hunter.ai.action_queue.append(SleepAction(self.hunter, self.bed))
 
 

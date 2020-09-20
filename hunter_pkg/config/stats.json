@@ -43,6 +43,10 @@
     "fire-pit": {
         "duration": 120000
     },
+    "ground": {
+        "sleep-comfort": 0.2,
+        "sleep-health-gain": 0.05
+    },
     "hunter": {
         "x-spawn": 47,
         "y-spawn": 10,
@@ -56,6 +60,9 @@
         "starting-energy": 30,
         "hunger-loss": 0.25,
         "energy-loss": 0.1,
+        "sleep-health-gain": 0.25,
+        "starvation-health-loss": 1,
+        "sleep-deprivation-health-loss": 0.1,
         "hunger-threshold-low": 35,
         "hunger-threshold-high": 50,
         "tired-threshold": 15,
