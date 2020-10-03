@@ -15,3 +15,7 @@ def rand():
 
 def randint(integer):
     return random.randint(integer)
+
+def pick_rand(list):
+    return list[range(0, len(list) - 1)]
+    

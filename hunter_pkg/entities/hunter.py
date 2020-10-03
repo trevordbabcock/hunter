@@ -10,6 +10,7 @@ from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import bow as bw
+from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import rabbit as rbt
 
 from hunter_pkg.helpers import math
@@ -18,7 +19,7 @@ from hunter_pkg.helpers import rng
 from hunter_pkg import colors
 from hunter_pkg import flogging
 from hunter_pkg import log_level
-from hunter_pkg import pathfinder
+from hunter_pkg import pathfinder as pf
 from hunter_pkg import stats
 from hunter_pkg import status_effects as stfx
 from hunter_pkg import vision_map as vsmap
@@ -129,17 +130,6 @@ class Hunter(base_entity.IntelligentEntity):
 
         return rt_time_alive
 
-    def path_to(self, x, y):
-        actions = []
-        path = pathfinder.get_path(self.engine.game_map.path_map, (self.y, self.x), (y, x))
-        previous_position = (self.y, self.x)
-
-        for i in range(1, len(path)):
-            actions.append(MovementAction(self, (path[i][0] - previous_position[0]), (path[i][1] - previous_position[1])))
-            previous_position = (path[i][0], path[i][1])
-
-        return actions
-
 
 class HunterAI():
     def __init__(self, hunter):
@@ -163,13 +153,13 @@ class HunterAI():
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
-            actions.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, (bb.BerryBush, rbt.Rabbit), self.decide_where_to_go()))
+            actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.decide_where_to_go()))
         elif self.hunter.is_tired():
             flog.debug("hunter is TIRED")
             self.hunter.recent_actions.append("Hunter is tired!")
             self.hunter.recent_actions.append("Hunter is going to camp.")
 
-            for action in self.hunter.path_to(self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]):
+            for action in pf.path_to(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
                 self.hunter.ai.action_queue.append(action)
             
             for component in self.hunter.engine.camp.components:
@@ -192,7 +182,7 @@ class HunterAI():
 
             if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
                 flog.debug(f"found a destination: ({dest_x},{dest_y})")
-                return self.hunter.path_to(dest_x, dest_y)
+                return pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
 
 
 class HunterMemory():
@@ -257,11 +247,10 @@ class MovementAction():
         self.remember_terrain(self.hunter)
 
 
-class SearchAreaAction():
-    def __init__(self, hunter, game_map, search_radius, search_for_classes, plan_b):
+class SearchAreaAction(enta.SearchAreaActionBase):
+    def __init__(self, hunter, search_for_classes, plan_b):
         self.hunter = hunter
-        self.game_map = game_map
-        self.search_radius = search_radius
+        self.search_radius = self.hunter.vision_distance
         self.search_for_classes = [c.__name__ for c in search_for_classes]
         self.plan_b = plan_b
 
@@ -269,41 +258,19 @@ class SearchAreaAction():
         flog.debug("hunter is searching area")
         self.hunter.recent_actions.append("Hunter is searching area.")
 
-        search_area = self.get_search_area()
-        found_entities = []
-        i = 0
-        for y in range(len(search_area)):
-            row = search_area[y]
-            if row != None:
-                for x in range(len(row)):
-                    tile = row[x]
-                    for e in tile.entities:
-                        if e.__class__.__name__ in self.search_for_classes:
-                            i += 1
-                            found_entities.append(e)
-                            flog.debug("- found an entity: ({},{})".format(e.x, e.y))
+        search_area = self.get_search_area(self.hunter, self.search_radius)
+        found_entities = self.find_entities(search_area, self.search_for_classes)
 
         if len(found_entities) > 0:
             self.hunter.recent_actions.append(f"Hunter found something to eat.")
         else:
             self.hunter.recent_actions.append(f"Hunter couldn't find anything to eat.")
 
-        nearest_entity = None
-        nearest_entity_distance = None
-        for e in found_entities:
-            if nearest_entity == None:
-                nearest_entity = e
-                nearest_entity_distance = self.get_distance(self.hunter, e)
-            else:
-                distance = self.get_distance(self.hunter, e)
-
-                if (distance < nearest_entity_distance):
-                    nearest_entity = e
-                    nearest_entity_distance = distance
+        nearest_entity = self.get_nearest_entity(self.hunter, found_entities)
 
         if nearest_entity != None:
             if isinstance(nearest_entity, bb.BerryBush):
-                for action in self.hunter.path_to(nearest_entity.x, nearest_entity.y):
+                for action in pf.path_to(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
                     self.hunter.ai.action_queue.append(action)
                 
                 self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, nearest_entity))
@@ -312,29 +279,13 @@ class SearchAreaAction():
                     self.hunter.ai.action_queue.append(ShootBowAction(self.hunter, self.hunter.bow, nearest_entity))
                 else:
                     self.hunter.recent_actions.append("Hunter is walking to rabbit carcass.")
-                    for action in self.hunter.path_to(nearest_entity.x, nearest_entity.y):
+                    for action in pf.path_to(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
                         self.hunter.ai.action_queue.append(action)
 
                     self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, nearest_entity))
         else:
             for action in self.plan_b:
                 self.hunter.ai.action_queue.append(action)
-
-    def get_distance(self, entity1, entity2):
-        return abs(entity1.x - entity2.x) + abs(entity1.y - entity2.y)
-
-    def get_search_area(self):
-        search_area = [None] * (self.search_radius * 2)
-        y_range_start = max(0, self.hunter.y - self.search_radius)
-        y_range_end = min(self.game_map.height - 1, self.hunter.y + self.search_radius)
-        x_range_start = max(0, self.hunter.x - self.search_radius)
-        x_range_end = min(self.game_map.width - 1, self.hunter.x + self.search_radius)
-        tmp_map = self.game_map.tiles[y_range_start:y_range_end]
-
-        for y in range(len(tmp_map)):
-            search_area[y] = tmp_map[y][x_range_start:x_range_end]
-
-        return search_area
 
 
 class PickAndEatAction():
@@ -356,7 +307,7 @@ class PickAndEatAction():
                 if self.static_entity.num_berries > 0:
                     self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
                 else:
-                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, self.hunter.engine.game_map, self.hunter.vision_distance, (bb.BerryBush, rbt.Rabbit), self.hunter.ai.decide_where_to_go()))
+                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.hunter.ai.decide_where_to_go()))
             else:
                 self.hunter.recent_actions.append("Hunter is full!")
         else:

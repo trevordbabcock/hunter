@@ -11,6 +11,8 @@ from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import berry_bush as bb
 
 from hunter_pkg.helpers import math
+from hunter_pkg.helpers import rng
+from hunter_pkg.helpers import time_of_day as tod
 
 from hunter_pkg import colors
 from hunter_pkg import event as ev
@@ -77,15 +79,15 @@ class Engine:
     
     def get_time_of_day(self, time):
         if time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["night"]:
-            return "night"
+            return tod.NIGHT
         elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["evening"]:
-            return "evening"
+            return tod.EVENING
         elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["afternoon"]:
-            return "afternoon"
+            return tod.AFTERNOON
         elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["morning"]:
-            return "morning"
+            return tod.MORNING
         else:
-            return "night"
+            return tod.NIGHT
 
     def process_events(self):
         flog.debug(f"event_queue len: {len(self.event_queue)}")
@@ -107,12 +109,14 @@ class Engine:
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:
-                    if nprand.rand() < stats.Stats.map()["rabbit"]["spawn"]:
+                    if rng.rand() < stats.Stats.map()["rabbit"]["spawn"]:
+                        burrow = rbt.Burrow(x, y)
                         rabbit = rbt.Rabbit(self, x, y)
-                        self.game_map.tiles[y][x].entities.append(rabbit)
+                        rabbit.burrow = burrow
+                        self.game_map.add_entities_to_tile(x, y, [burrow, rabbit])
                         intelligent_entities.append(rabbit)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
-                    if nprand.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
+                    if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
                         static_entities.append(berry_bush)
@@ -153,7 +157,8 @@ class Engine:
 
         for entity in self.intelligent_entities:
             if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:
-                console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+                if (isinstance(entity, rbt.Rabbit) and not entity.asleep) or not isinstance(entity, rbt.Rabbit):
+                    console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
         if self.settings["show-ui"]:
             self.stats_panel.render(console)

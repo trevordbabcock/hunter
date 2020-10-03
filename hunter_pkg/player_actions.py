@@ -9,17 +9,17 @@ from hunter_pkg import pathfinder
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
-class Action:
+class PlayerAction:
     def perform(self, engine):
         raise NotImplementedError()
 
 
-class EscapeAction(Action):
+class EscapePlayerAction(PlayerAction):
     def perform(self, engine):
         raise SystemExit()
 
 
-class MouseMovementAction(Action):
+class MouseMovementPlayerAction(PlayerAction):
     def __init__(self, px_x, px_y):
         self.x = floor(px_x/10)
         self.y = floor(px_y/10)
@@ -37,14 +37,14 @@ class MouseMovementAction(Action):
             engine.stats_panel.tile = curr_tile
 
 
-class ToggleVisionAction(Action):
+class ToggleVisionPlayerAction(PlayerAction):
     def perform(self, engine):
         new_setting = not engine.settings["show-fog"]
         engine.settings["show-fog"] = new_setting
         engine.game_map.show_fog = new_setting
 
 
-class ToggleUIAction(Action):
+class ToggleUIPlayerAction(PlayerAction):
     def perform(self, engine):
         engine.settings["show-ui"] = not engine.settings["show-ui"]
         

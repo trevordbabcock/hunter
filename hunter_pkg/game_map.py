@@ -49,7 +49,6 @@ class GameMap:
                 line = file.readline()
                 y = y + 1
 
-
     def in_bounds(self, x: int, y: int) -> bool:
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
@@ -58,6 +57,11 @@ class GameMap:
         for y in range(self.height):
             for x in range(self.width):
                 console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt(time_of_day)
+
+    def add_entities_to_tile(self, x, y, entities):
+        for e in entities:
+            self.tiles[y][x].entities.append(e)
+
 
 class Tile:
     def __init__(self, game_map, terrain, x, y):

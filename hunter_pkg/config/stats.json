@@ -77,11 +77,13 @@
     },
     "rabbit": {
         "spawn": 0.01,
+        "hunger-chance": 0.7,
         "update-interval-start": 1000,
         "update-interval-end" :3000,
         "update-interval-step": 100,
         "max-health": 5,
         "starting-health": 5,
-        "nutritional-value": 12
+        "nutritional-value": 12,
+        "vision-distance": 1
     }
 }

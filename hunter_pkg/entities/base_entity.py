@@ -109,6 +109,7 @@ class IntelligentEntity(Entity):
     def is_affected_by(self, status_effect_class):
         return any(isinstance(se, status_effect_class) for se in self.status_effects)
 
+
 class StaticEntity():
     def __init__(self, engine, x, y, update_interval):
         self.engine = engine

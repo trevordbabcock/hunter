@@ -111,6 +111,8 @@ class StatsPanel(UIPanel):
                             lines.append("~Hntr")
                         elif isinstance(entity, rbt.Rabbit):
                             lines.append("~Rbbt")
+                        elif isinstance(entity, rbt.Burrow):
+                            lines.append("~Brrw")
                         elif isinstance(entity, bb.BerryBush):
                             lines.append("~BrryBsh")
                             lines.append(f" ~Berries: {entity.num_berries}")
