@@ -5,9 +5,9 @@ class SearchAreaActionBase():
     def get_search_area(self, entity, search_radius, vision_map_func):
         search_area = [None] * ((search_radius * 2) + 1)
         y_range_start = max(0, entity.y - search_radius)
-        y_range_end = min(entity.engine.game_map.height - 1, entity.y + search_radius + 1) # +1 because [n:m] is actually not inclusive
+        y_range_end = min(entity.engine.game_map.height, entity.y + search_radius + 1) # +1 because [n:m] is actually not inclusive
         x_range_start = max(0, entity.x - search_radius)
-        x_range_end = min(entity.engine.game_map.width - 1, entity.x + search_radius + 1)
+        x_range_end = min(entity.engine.game_map.width, entity.x + search_radius + 1)
         tmp_map = entity.engine.game_map.tiles[y_range_start:y_range_end]
 
         for y in range(len(tmp_map)):

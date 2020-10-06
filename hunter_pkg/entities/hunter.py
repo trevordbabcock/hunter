@@ -197,8 +197,6 @@ class HunterMemory():
 
 class MovementAction():
     def __init__(self, hunter, dy, dx):
-        super().__init__()
-
         self.hunter = hunter
         self.dx = dx
         self.dy = dy
