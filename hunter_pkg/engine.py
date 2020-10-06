@@ -42,6 +42,7 @@ class Engine:
         self.camp = None
         self.hovered_tile = None
         self.settings = stats.Stats.map()["settings"]
+        self.time_of_day = tod.MORNING # init this to morning for now
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -129,12 +130,14 @@ class Engine:
     def init_action_log_panel(self):
         self.action_log_panel = ui_panel.ActionLogPanel(x=20, y=36, height=13, width=56, engine=self)
 
+    # TODO dedup this (duplicated in hunter.py)
     def init_fog_reveal(self):
-        vision_map = vsmap.normal()
-        x_start = self.hunter.x - self.hunter.vision_distance
-        x_end = self.hunter.x + self.hunter.vision_distance
-        y_start = self.hunter.y - self.hunter.vision_distance
-        y_end = self.hunter.y + self.hunter.vision_distance
+        vd = self.hunter.vision_distance[self.time_of_day]
+        vision_map = vsmap.circle(vd)
+        x_start = self.hunter.x - vd
+        x_end = self.hunter.x + vd
+        y_start = self.hunter.y - vd
+        y_end = self.hunter.y + vd
 
         for y in range(y_start, y_end+1):
             for x in range(x_start, x_end+1):

@@ -103,8 +103,9 @@ class IntelligentEntity(Entity):
     
     def remove_se(self, status_effect_class):
         for i in range(len(self.status_effects)):
-            if isinstance(self.status_effects[i], status_effect_class):
-                del self.status_effects[i]
+            if self.status_effects[i] != None:
+                if isinstance(self.status_effects[i], status_effect_class):
+                    del self.status_effects[i]
 
     def is_affected_by(self, status_effect_class):
         return any(isinstance(se, status_effect_class) for se in self.status_effects)

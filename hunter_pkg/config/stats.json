@@ -50,7 +50,12 @@
     "hunter": {
         "x-spawn": 47,
         "y-spawn": 10,
-        "vision-distance": 4,
+        "vision-distance": {
+            "morning": 2,
+            "afternoon": 3,
+            "evening": 4,
+            "night": 1
+        },
         "roam-distance": 8,
         "max-hunger": 50,
         "max-health": 50,
@@ -84,6 +89,11 @@
         "max-health": 5,
         "starting-health": 5,
         "nutritional-value": 12,
-        "vision-distance": 1
+        "vision-distance": {
+            "morning": 1,
+            "afternoon": 1,
+            "evening": 1,
+            "night": 1
+        }
     }
 }

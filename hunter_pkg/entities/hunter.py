@@ -56,7 +56,7 @@ class Hunter(base_entity.IntelligentEntity):
             return names["names"][rng.randint(len(names["names"]))]
 
     def can_see(self, entity):
-        vd = self.vision_distance
+        vd = self.vision_distance[entity.engine.time_of_day]
         visible_x = (self.x - vd) < entity.x and entity.x < (self.x + vd)
         visible_y = (self.y - vd) < entity.y and entity.y < (self.y + vd)
 
@@ -90,32 +90,35 @@ class Hunter(base_entity.IntelligentEntity):
 
     def die(self):
         flog.debug("omg hunter died")
+        self.recent_actions.append("Hunter has died!")
+
         self.alive = False
         self.char = "X"
 
     def progress(self):
-        if self.is_affected_by(stfx.Starvation):
-            self.curr_health -= stats.Stats.map()["hunter"]["starvation-health-loss"]
+        if self.alive:
+            if self.is_affected_by(stfx.Starvation):
+                self.curr_health -= stats.Stats.map()["hunter"]["starvation-health-loss"]
 
-        if self.is_affected_by(stfx.SleepDeprivation):
-            self.curr_health -= stats.Stats.map()["hunter"]["sleep-deprivation-health-loss"]
-            chance_to_pass_out = (1 - (self.curr_health / self.max_health)) * 0.1
-            roll = rng.rand()
+            if self.is_affected_by(stfx.SleepDeprivation):
+                self.curr_health -= stats.Stats.map()["hunter"]["sleep-deprivation-health-loss"]
+                chance_to_pass_out = (1 - (self.curr_health / self.max_health)) * 0.1
+                roll = rng.rand()
 
-            # flog.debug("---chance to pass out---")
-            # flog.debug(f"health: {self.curr_health}")
-            # flog.debug(f"chance: {chance_to_pass_out}")
-            # flog.debug(f"roll: {roll}")
-            # flog.debug(f"res: {chance_to_pass_out > roll}")
+                # flog.debug("---chance to pass out---")
+                # flog.debug(f"health: {self.curr_health}")
+                # flog.debug(f"chance: {chance_to_pass_out}")
+                # flog.debug(f"roll: {roll}")
+                # flog.debug(f"res: {chance_to_pass_out > roll}")
 
-            if chance_to_pass_out > roll and not self.asleep:
-                self.recent_actions.append("Hunter passed out from sleep deprivation!")
-                self.ai.clear_action_queue()
-                self.ai.action_queue.append(SleepAction(self, None))
-        
-        self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
-        self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
-        self.try_flush_recent_actions()
+                if chance_to_pass_out > roll and not self.asleep:
+                    self.recent_actions.append("Hunter passed out from sleep deprivation!")
+                    self.ai.clear_action_queue()
+                    self.ai.action_queue.append(SleepAction(self, None))
+            
+            self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
+            self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
+            self.try_flush_recent_actions()
     
     def try_flush_recent_actions(self):
         #flog.debug(f"hunter recent_actions: {len(self.recent_actions)}")
@@ -201,11 +204,12 @@ class MovementAction():
         self.dy = dy
 
     def remember_terrain(self, hunter):
-        vision_map = vsmap.normal()
-        x_start = self.hunter.x - self.hunter.vision_distance
-        x_end = self.hunter.x + self.hunter.vision_distance
-        y_start = self.hunter.y - self.hunter.vision_distance
-        y_end = self.hunter.y + self.hunter.vision_distance
+        vd = self.hunter.vision_distance[hunter.engine.time_of_day]
+        vision_map = vsmap.circle(vd)
+        x_start = self.hunter.x - vd
+        x_end = self.hunter.x + vd
+        y_start = self.hunter.y - vd
+        y_end = self.hunter.y + vd
 
         for y in range(y_start, y_end+1):
             for x in range(x_start, x_end+1):
@@ -250,7 +254,7 @@ class MovementAction():
 class SearchAreaAction(enta.SearchAreaActionBase):
     def __init__(self, hunter, search_for_classes, plan_b):
         self.hunter = hunter
-        self.search_radius = self.hunter.vision_distance
+        self.search_radius = self.hunter.vision_distance[hunter.engine.time_of_day]
         self.search_for_classes = [c.__name__ for c in search_for_classes]
         self.plan_b = plan_b
 
@@ -258,7 +262,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         flog.debug("hunter is searching area")
         self.hunter.recent_actions.append("Hunter is searching area.")
 
-        search_area = self.get_search_area(self.hunter, self.search_radius)
+        search_area = self.get_search_area(self.hunter, self.search_radius, vsmap.circle)
         found_entities = self.find_entities(search_area, self.search_for_classes)
 
         if len(found_entities) > 0:

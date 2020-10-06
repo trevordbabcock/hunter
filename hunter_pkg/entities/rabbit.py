@@ -15,6 +15,7 @@ from hunter_pkg import log_level
 from hunter_pkg import pathfinder as pf
 from hunter_pkg import stats
 from hunter_pkg import terrain as trrn
+from hunter_pkg import vision_map as vsmap
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
@@ -135,11 +136,11 @@ class MovementAction():
 class SearchAreaAction(enta.SearchAreaActionBase):
     def __init__(self, rabbit, search_for_classes):
         self.rabbit = rabbit
-        self.search_radius = self.rabbit.vision_distance
+        self.search_radius = self.rabbit.vision_distance[self.rabbit.engine.time_of_day]
         self.search_for_classes = [c.__name__ for c in search_for_classes]
     
     def perform(self):
-        search_area = self.get_search_area(self.rabbit, self.search_radius)
+        search_area = self.get_search_area(self.rabbit, self.search_radius, vsmap.square)
         found_terrain = self.find_terrain(search_area, self.search_for_classes)
 
         if len(found_terrain) > 0:
