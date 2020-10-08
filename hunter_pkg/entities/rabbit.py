@@ -84,15 +84,12 @@ class RabbitAI():
 
             self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
         else:
-            self.wander()
+            self.roam()
         
         return actions
 
-    def decide_where_to_go(self):
-        pass
-
-    def wander(self):
-        flog.debug("rabbit is wandering")
+    def roam(self):
+        flog.debug("rabbit is romaing")
         max_x = self.rabbit.engine.game_map.width - 1
         max_y = self.rabbit.engine.game_map.height - 1
         dest_x = math.clamp(self.rabbit.x + rng.range(-3, 3), 0, max_x)
@@ -152,7 +149,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
             
             self.rabbit.ai.action_queue.append(GrazeAction(self.rabbit))
         else:
-            self.rabbit.ai.wander()
+            self.rabbit.ai.roam()
 
 
 class GrazeAction():

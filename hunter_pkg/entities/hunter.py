@@ -156,7 +156,7 @@ class HunterAI():
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
-            actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.decide_where_to_go()))
+            actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.roam()))
         elif self.hunter.is_tired():
             flog.debug("hunter is TIRED")
             self.hunter.recent_actions.append("Hunter is tired!")
@@ -172,20 +172,32 @@ class HunterAI():
         else:
             flog.debug("hunter is NOT hungry or tired")
             self.hunter.recent_actions.append("Hunter is not hungry or tired.")
-            actions = self.decide_where_to_go()
+            actions = self.roam()
 
         return actions
 
-    def decide_where_to_go(self):
+    def roam(self):
         dist = stats.Stats.map()["hunter"]["roam-distance"]
+        forbidden = [] # prevent retrying the same tiles
 
-        while(True):    
+        while(True):
             dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.height)
             dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.width)
 
-            if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-                flog.debug(f"found a destination: ({dest_x},{dest_y})")
-                return pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
+            if [dest_x, dest_y] not in forbidden:
+                if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
+                    flog.debug(f"found a destination: ({dest_x},{dest_y})")
+                    actions = pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
+
+                    if len(actions) < 10:
+                        return actions
+                    else:
+                        flog.debug("forbidding: ({dest_x},{dest_y})")
+                        forbidden.append([dest_x, dest_y])
+                else:
+                    flog.debug("forbidding: ({dest_x},{dest_y})")
+                    forbidden.append([dest_x, dest_y])
+
 
 
 class HunterMemory():
@@ -309,11 +321,11 @@ class PickAndEatAction():
                 if self.static_entity.num_berries > 0:
                     self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
                 else:
-                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.hunter.ai.decide_where_to_go()))
+                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.hunter.ai.roam()))
             else:
                 self.hunter.recent_actions.append("Hunter is full!")
         else:
-            for action in self.hunter.ai.decide_where_to_go():
+            for action in self.hunter.ai.roam():
                 self.hunter.ai.action_queue.append(action)
 
 
