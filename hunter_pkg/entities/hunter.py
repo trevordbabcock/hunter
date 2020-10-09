@@ -47,6 +47,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.days_survived = 0
         self.rt_spawn_time = time()
         self.bow = bw.Bow()
+        self.bed = None
         self.accuracy = stats.Stats.map()["hunter"]["accuracy"]
     
     def get_name(self):
@@ -77,7 +78,16 @@ class Hunter(base_entity.IntelligentEntity):
         return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"]
 
     def should_wake_up(self):
-        chance_to_wake_up = (self.curr_health / self.max_health) * 0.13
+        chance_to_wake_up = 0
+
+        if self.bed == None:
+            chance_to_wake_up += stats.Stats.map()["ground"]["wake-chance"]
+        else:
+            chance_to_wake_up += self.bed.wake_chance
+        
+        if self.is_affected_by(stfx.Starvation):
+            chance_to_wake_up += (self.max_health / self.curr_health) * 0.02
+
         roll = rng.rand()
 
         # flog.debug("---chance to wake up---")
@@ -344,12 +354,14 @@ class SleepAction():
     def __init__(self, hunter, bed):
         self.hunter = hunter
         self.bed = bed
+        self.hunter.bed = bed
 
     def perform(self):
         if self.hunter.curr_energy >= (self.hunter.max_energy - stats.Stats.map()["hunter"]["energy-loss"]) or self.hunter.should_wake_up():
             # wake up
             self.hunter.recent_actions.append("Hunter woke up.")
             self.hunter.asleep = False
+            self.hunter.bed = None
             # grab a brush and put a little makeup
 
             if self.bed != None:

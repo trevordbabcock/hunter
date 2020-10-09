@@ -59,7 +59,7 @@ class IntelligentEntity(Entity):
     def curr_health(self, curr_health):
         self.__curr_health = math.clamp(curr_health, self.min_health, self.max_health)
 
-        if self.curr_health <= 0:
+        if self.alive and self.curr_health <= 0:
             self.die()
 
     @property

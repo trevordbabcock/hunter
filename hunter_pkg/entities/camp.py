@@ -45,6 +45,7 @@ class Bedroll(CampComponent):
     def __init__(self):
         self.occupied = False
         self.comfort = stats.Stats.map()["bedroll"]["comfort"]
+        self.wake_chance = stats.Stats.map()["bedroll"]["wake-chance"]
 
 
 class WoodPile(CampComponent):

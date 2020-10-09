@@ -34,7 +34,8 @@
         "nutritional-value": 2
     },
     "bedroll": {
-        "comfort": 5
+        "comfort": 2,
+        "wake-chance": 0
     },
     "bow": {
         "accuracy": 0.9,
@@ -45,7 +46,8 @@
     },
     "ground": {
         "sleep-comfort": 0.2,
-        "sleep-health-gain": 0.05
+        "sleep-health-gain": 0.05,
+        "wake-chance": 0.1
     },
     "hunter": {
         "x-spawn": 47,
