@@ -31,6 +31,7 @@ class Rabbit(base_entity.IntelligentEntity):
         self.vision_distance = stats.Stats.map()["rabbit"]["vision-distance"]
         self.recent_actions = []
         self.burrow = None
+        self.hidden = False
 
     def is_hungry(self):
         return rng.rand() < stats.Stats.map()["rabbit"]["hunger-chance"]
@@ -168,10 +169,12 @@ class SleepAction():
         if self.rabbit.is_tired():
             flog.debug("rabbit is sleeping")
             self.rabbit.asleep = True
+            self.rabbit.hidden = True
             self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
         else:
             flog.debug("rabbit woke up")
             self.rabbit.asleep = False
+            self.rabbit.hidden = False
         
 
     

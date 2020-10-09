@@ -29,9 +29,10 @@ class SearchAreaActionBase():
                     tile = row[x]
                     if tile != None:
                         for e in tile.entities:
-                            if e.__class__.__name__ in search_for_classes:
-                                i += 1
-                                found_entities.append(e)
+                            if not hasattr(e, "hidden") or not e.hidden:
+                                if e.__class__.__name__ in search_for_classes:
+                                    i += 1
+                                    found_entities.append(e)
 
         return found_entities
 

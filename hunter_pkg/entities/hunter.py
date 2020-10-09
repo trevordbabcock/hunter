@@ -33,6 +33,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.name = self.get_name()
         self.alive = True
         self.asleep = False
+        self.hidden = False
         self.max_hunger = stats.Stats.map()["hunter"]["max-hunger"]
         self.max_health = stats.Stats.map()["hunter"]["max-health"]
         self.max_energy = stats.Stats.map()["hunter"]["max-energy"]
