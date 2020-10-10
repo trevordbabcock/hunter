@@ -85,6 +85,7 @@
     "rabbit": {
         "spawn": 0.01,
         "hunger-chance": 0.7,
+        "sleep-in-chance": 0.7,
         "update-interval-start": 1000,
         "update-interval-end" :3000,
         "update-interval-step": 100,

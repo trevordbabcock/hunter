@@ -166,7 +166,9 @@ class SleepAction():
         self.rabbit = rabbit
 
     def perform(self):
-        if self.rabbit.is_tired():
+        sleep_in = rng.rand() < stats.Stats.map()["rabbit"]["sleep-in-chance"]
+
+        if self.rabbit.is_tired() or sleep_in:
             flog.debug("rabbit is sleeping")
             self.rabbit.asleep = True
             self.rabbit.hidden = True
@@ -175,6 +177,7 @@ class SleepAction():
             flog.debug("rabbit woke up")
             self.rabbit.asleep = False
             self.rabbit.hidden = False
+            
         
 
     

@@ -192,8 +192,8 @@ class HunterAI():
         forbidden = [] # prevent retrying the same tiles
 
         while(True):
-            dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.height)
-            dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.width)
+            dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.width - 1)
+            dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.height - 1)
 
             if [dest_x, dest_y] not in forbidden:
                 if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
