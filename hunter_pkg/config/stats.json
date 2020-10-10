@@ -53,9 +53,9 @@
         "x-spawn": 47,
         "y-spawn": 10,
         "vision-distance": {
-            "morning": 2,
-            "afternoon": 3,
-            "evening": 4,
+            "morning": 4,
+            "afternoon": 4,
+            "evening": 3,
             "night": 1
         },
         "roam-distance": 8,
@@ -91,7 +91,7 @@
         "update-interval-step": 100,
         "max-health": 5,
         "starting-health": 5,
-        "nutritional-value": 12,
+        "nutritional-value": 17,
         "vision-distance": {
             "morning": 1,
             "afternoon": 1,

@@ -167,7 +167,7 @@ class HunterAI():
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
-            actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.roam()))
+            actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit)))
         elif self.hunter.is_tired():
             flog.debug("hunter is TIRED")
             self.hunter.recent_actions.append("Hunter is tired!")
@@ -273,11 +273,10 @@ class MovementAction():
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
-    def __init__(self, hunter, search_for_classes, plan_b):
+    def __init__(self, hunter, search_for_classes):
         self.hunter = hunter
         self.search_radius = self.hunter.vision_distance[hunter.engine.time_of_day]
         self.search_for_classes = [c.__name__ for c in search_for_classes]
-        self.plan_b = plan_b
 
     def perform(self):
         flog.debug("hunter is searching area")
@@ -309,7 +308,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
 
                     self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, nearest_entity))
         else:
-            for action in self.plan_b:
+            for action in self.hunter.ai.roam():
                 self.hunter.ai.action_queue.append(action)
 
 
@@ -332,7 +331,7 @@ class PickAndEatAction():
                 if self.static_entity.num_berries > 0:
                     self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
                 else:
-                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit), self.hunter.ai.roam()))
+                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit)))
             else:
                 self.hunter.recent_actions.append("Hunter is full!")
         else:
@@ -392,6 +391,12 @@ class ShootBowAction():
     def perform(self):
         if self.bow.shoot(self.hunter, self.target):
             self.hunter.recent_actions.append("Hunter shot the bow and hit!")
+            self.hunter.recent_actions.append("Hunter is walking to rabbit carcass.")
+
+            for action in pf.path_to(self.hunter, [self.target.x, self.target.y], MovementAction):
+                self.hunter.ai.action_queue.append(action)
+
+            self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, self.target))
         else:
             self.hunter.recent_actions.append("Hunter shot the bow and missed!")
         
