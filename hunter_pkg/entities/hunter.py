@@ -87,7 +87,7 @@ class Hunter(base_entity.IntelligentEntity):
             chance_to_wake_up += self.bed.wake_chance
         
         if self.is_affected_by(stfx.Starvation):
-            chance_to_wake_up += (self.max_health / self.curr_health) * 0.02
+            chance_to_wake_up += self.rand_health_alert()
 
         roll = rng.rand()
 
@@ -97,7 +97,10 @@ class Hunter(base_entity.IntelligentEntity):
         # flog.debug(f"roll: {roll})")
         # flog.debug(f"res: {chance_to_wake_up > roll}")
 
-        return chance_to_wake_up > roll
+        return roll < chance_to_wake_up
+
+    def rand_health_alert(self):
+        return 1 - (self.curr_health / self.max_health)
 
     def die(self):
         flog.debug("omg hunter died")
@@ -110,10 +113,9 @@ class Hunter(base_entity.IntelligentEntity):
         if self.alive:
             if self.is_affected_by(stfx.Starvation):
                 self.curr_health -= stats.Stats.map()["hunter"]["starvation-health-loss"]
-
             if self.is_affected_by(stfx.SleepDeprivation):
                 self.curr_health -= stats.Stats.map()["hunter"]["sleep-deprivation-health-loss"]
-                chance_to_pass_out = (1 - (self.curr_health / self.max_health)) * 0.1
+                chance_to_pass_out = self.rand_health_alert() * stats.Stats.map()["hunter"]["sleep-deprivation-chance-to-pass-out"]
                 roll = rng.rand()
 
                 # flog.debug("---chance to pass out---")
@@ -164,6 +166,18 @@ class HunterAI():
 
     def decide_what_to_do(self):
         actions = []
+        # Note: this doesn't work so great, but leaving it in for now
+        # if self.hunter.is_affected_by(stfx.SleepDeprivation) and rng.rand() < self.hunter.rand_health_alert():
+        #     flog.debug("hunter is SLEEP DEPRIVED and going to camp")
+        #     self.hunter.recent_actions.append("Hunter is sleep deprived and going to camp!")
+
+        #     for action in pf.path_to(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
+        #         self.hunter.ai.action_queue.append(action)
+            
+        #     for component in self.hunter.engine.camp.components:
+        #         if isinstance(component, cp.Bedroll):
+        #             self.hunter.ai.action_queue.append(SleepAction(self.hunter, component))
+        #             break
         if self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")

@@ -1,6 +1,6 @@
 {
     "settings": {
-        "game-speed": 1.0,
+        "game-speed": 3.0,
         "show-fog": false,
         "show-ui": true,
         "game-time": {
@@ -68,8 +68,9 @@
         "hunger-loss": 0.25,
         "energy-loss": 0.1,
         "sleep-health-gain": 0.25,
-        "starvation-health-loss": 1,
+        "starvation-health-loss": 0.5,
         "sleep-deprivation-health-loss": 0.1,
+        "sleep-deprivation-chance-to-pass-out": 0.07,
         "hunger-threshold-low": 35,
         "hunger-threshold-high": 50,
         "tired-threshold": 15,
