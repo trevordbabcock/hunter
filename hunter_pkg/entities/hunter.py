@@ -206,23 +206,33 @@ class HunterAI():
         forbidden = [] # prevent retrying the same tiles
 
         while(True):
-            dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.width - 1)
-            dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.height - 1)
+            candidates = []
 
-            if [dest_x, dest_y] not in forbidden:
-                if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-                    flog.debug(f"found a destination: ({dest_x},{dest_y})")
-                    actions = pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
+            # get 3 candidate distinations
+            while(len(candidates) < stats.Stats.map()["hunter"]["roam-candidates"]):
+                dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.width - 1)
+                dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.height - 1)
 
-                    if len(actions) < 10:
-                        return actions
+                if [dest_x, dest_y] not in forbidden:
+                    if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
+                        explored = f"{dest_x},{dest_y}" in self.hunter.memory.map["explored-terrain"]
+                        distance = math.get_distance(self.hunter.x, self.hunter.y, dest_x, dest_y)
+                        candidates.append([dest_x, dest_y, explored, distance])
                     else:
-                        flog.debug("forbidding: ({dest_x},{dest_y})")
                         forbidden.append([dest_x, dest_y])
-                else:
-                    flog.debug("forbidding: ({dest_x},{dest_y})")
-                    forbidden.append([dest_x, dest_y])
 
+            # sort by explored and distance
+            candidates = sorted(candidates, key=lambda x: (-x[2], -x[3]))
+
+            for dest in candidates:
+                # prefer to take the first one that is in fog and farthest away
+                # this way hunter will tend to travel longer distances and explore more fog
+                actions = pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
+
+                if len(actions) < stats.Stats.map()["hunter"]["max-path-distance"]:
+                    return actions
+                else:
+                    forbidden.append([dest_x, dest_y])
 
 
 class HunterMemory():

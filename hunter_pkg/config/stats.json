@@ -78,6 +78,8 @@
         "update-interval-end" :1500,
         "update-interval-step": 100,
         "accuracy": 0.9,
+        "max-path-distance": 12,
+        "roam-candidates": 3,
         "camp": {
             "x-spawn": 49,
             "y-spawn": 10

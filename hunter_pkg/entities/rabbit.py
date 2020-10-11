@@ -179,8 +179,6 @@ class SleepAction():
             self.rabbit.hidden = False
             
         
-
-    
 class Burrow():
     def __init__(self, x, y):
         self.x = x
