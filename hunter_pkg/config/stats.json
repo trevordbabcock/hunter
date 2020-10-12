@@ -4,7 +4,7 @@
         "show-fog": false,
         "show-ui": true,
         "game-time": {
-            "initial": 5800.0,
+            "initial": 6000.0,
             "factors": {
                 "night": 2.4,
                 "morning": 2.0,
@@ -34,7 +34,7 @@
         "nutritional-value": 2
     },
     "bedroll": {
-        "comfort": 2,
+        "comfort": 1.25,
         "wake-chance": 0
     },
     "bow": {
@@ -64,9 +64,9 @@
         "max-energy": 50,
         "starting-hunger": 30,
         "starting-health": 50,
-        "starting-energy": 30,
+        "starting-energy": 50,
         "hunger-loss": 0.25,
-        "energy-loss": 0.1,
+        "energy-loss": 0.3,
         "sleep-health-gain": 0.25,
         "starvation-health-loss": 0.5,
         "sleep-deprivation-health-loss": 0.1,

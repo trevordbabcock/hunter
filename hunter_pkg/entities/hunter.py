@@ -15,6 +15,7 @@ from hunter_pkg.entities import rabbit as rbt
 
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
+from hunter_pkg.helpers import time_of_day as tod
 
 from hunter_pkg import colors
 from hunter_pkg import flogging
@@ -76,7 +77,7 @@ class Hunter(base_entity.IntelligentEntity):
         return self.curr_hunger < stats.Stats.map()["hunter"]["hunger-threshold-high"]
 
     def is_tired(self):
-        return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"]
+        return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"] or self.engine.time_of_day == tod.NIGHT
 
     def should_wake_up(self):
         chance_to_wake_up = 0
@@ -381,7 +382,7 @@ class SleepAction():
         self.hunter.bed = bed
 
     def perform(self):
-        if self.hunter.curr_energy >= (self.hunter.max_energy - stats.Stats.map()["hunter"]["energy-loss"]) or self.hunter.should_wake_up():
+        if (self.hunter.curr_energy >= (self.hunter.max_energy - stats.Stats.map()["hunter"]["energy-loss"]) and self.hunter.engine.time_of_day != tod.NIGHT) or self.hunter.should_wake_up():
             # wake up
             self.hunter.recent_actions.append("Hunter woke up.")
             self.hunter.asleep = False
