@@ -21,7 +21,8 @@ from hunter_pkg import stats
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 def main() -> None:
-    stats.Stats.map(sys.argv[1])
+    stats_file = sys.argv[1] if len(sys.argv) == 2 else "hunter_pkg/config/stats.json"
+    stats.Stats.map(stats_file)
     seconds_per_frame = 0.016
     screen_width = 80
     screen_height = 50
