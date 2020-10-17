@@ -48,6 +48,14 @@ class Rabbit(base_entity.IntelligentEntity):
         self.engine.game_map.tiles[self.y][self.x].entities.remove(self)
         self.engine.intelligent_entities.remove(self)
 
+    def hide(self):
+        self.hidden = True
+        self.engine.game_map.redraw_tile(self.x, self.y)
+
+    def unhide(self):
+        self.hidden = False
+        self.engine.game_map.redraw_tile(self.x, self.y)
+
     def progress(self):
         pass
 
@@ -106,7 +114,7 @@ class MovementAction():
         self.rabbit = rabbit
         self.dx = dx
         self.dy = dy
-
+    
     def perform(self):
         if self.rabbit.alive:
             dest_x = self.rabbit.x + self.dx
@@ -117,14 +125,8 @@ class MovementAction():
             if not self.rabbit.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
                 return  # Destination is blocked by a tile.
 
-            # remove reference from origin tile
-            orig_tile = self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x]
-            for entity in orig_tile.entities:
-                if entity == self.rabbit:
-                    orig_tile.entities.remove(entity)
-            
-            # add reference to destination tile
-            self.rabbit.engine.game_map.tiles[dest_y][dest_x].entities.append(self.rabbit)
+            self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x].remove_entities([self.rabbit])
+            self.rabbit.engine.game_map.tiles[dest_y][dest_x].add_entities([self.rabbit])
 
             self.rabbit.move(self.dx, self.dy)
 
@@ -171,12 +173,12 @@ class SleepAction():
         if self.rabbit.is_tired() or sleep_in:
             flog.debug("rabbit is sleeping")
             self.rabbit.asleep = True
-            self.rabbit.hidden = True
+            self.rabbit.hide()
             self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
         else:
             flog.debug("rabbit woke up")
             self.rabbit.asleep = False
-            self.rabbit.hidden = False
+            self.rabbit.unhide()
             
         
 class Burrow():

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from bisect import insort
+import cProfile as profile
 import sys
 import time
 import tcod
@@ -39,8 +40,9 @@ def main() -> None:
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
     hunter = htr.Hunter(engine, stats.Stats.map()["hunter"]["x-spawn"], stats.Stats.map()["hunter"]["y-spawn"])
+    game_map.tiles[hunter.y][hunter.x].add_entities([hunter])
     camp = cp.Camp(engine, stats.Stats.map()["hunter"]["camp"]["x-spawn"], stats.Stats.map()["hunter"]["camp"]["y-spawn"])
-    game_map.tiles[camp.y][camp.x].entities.append(camp)
+    game_map.tiles[camp.y][camp.x].add_entities([camp])
     # hard-coding knowledge of camp for now
     hunter.memory.map["camp"] = {
         "x": camp.x,
@@ -58,16 +60,17 @@ def main() -> None:
 
     engine.init_event_queue(engine.intelligent_entities)
     engine.init_event_queue(engine.static_entities)
-
+    #n = 0
     with tcod.context.new_terminal(
         screen_width,
         screen_height,
         tileset=tileset,
         title="Hunter",
-        vsync=True,
+        vsync=False,
     ) as context:
         root_console = tcod.Console(screen_width, screen_height, order="F")
         while True:
+            #n += 1
             current = time.time()
             
             inputs = tcod.event.get()
@@ -75,13 +78,18 @@ def main() -> None:
             engine.advance_game_time()
             engine.process_events()
             engine.render(console=root_console, context=context)
+            
+            # if n == 100:
+            #     profile.runctx('engine.render(console=root_console, context=context)', globals(), locals())
+            # else:
+            #     engine.render(console=root_console, context=context)
 
             previous = current
             current = time.time()
             elapsed_time = current - previous
             sleep_time = seconds_per_frame - elapsed_time
-            #flog.debug(elapsed_time)
-            #flog.debug(sleep_time)
+            #flog.debug(f"et:{elapsed_time}")
+            #flog.debug(f"st:{sleep_time}")
 
             if(sleep_time > 0):
                 time.sleep(sleep_time)

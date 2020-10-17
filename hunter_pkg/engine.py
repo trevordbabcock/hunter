@@ -67,6 +67,7 @@ class Engine:
 
         if new_time_of_day != prev_time_of_day:
             flog.debug(f"it's now {new_time_of_day}")
+            self.game_map.redraw_all()
 
         if new_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
@@ -114,7 +115,7 @@ class Engine:
                         burrow = rbt.Burrow(x, y)
                         rabbit = rbt.Rabbit(self, x, y)
                         rabbit.burrow = burrow
-                        self.game_map.add_entities_to_tile(x, y, [burrow, rabbit])
+                        self.game_map.tiles[y][x].add_entities([burrow, rabbit])
                         intelligent_entities.append(rabbit)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
@@ -168,4 +169,3 @@ class Engine:
             self.action_log_panel.render(console)
 
         context.present(console)
-        console.clear()

@@ -82,7 +82,7 @@ class IntelligentEntity(Entity):
     @curr_energy.setter
     def curr_energy(self, curr_energy):
         self.__curr_energy = math.clamp(curr_energy, self.min_energy, self.max_energy)
-
+        
         if self.curr_energy <= 0:
             self.apply_se_once(stfx.SleepDeprivation)
         elif self.curr_energy > 0:

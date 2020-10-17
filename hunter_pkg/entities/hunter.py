@@ -271,7 +271,9 @@ class MovementAction():
                 prev_visible = f"{clmp_x},{clmp_y}" in self.hunter.memory.map["explored-terrain"].keys() and self.hunter.memory.map["explored-terrain"][f"{clmp_x},{clmp_y}"]
                 curr_visible = vision_map[rel_y][rel_x].visible
                 self.hunter.memory.map["explored-terrain"][f"{clmp_x},{clmp_y}"] = curr_visible or prev_visible
-                self.hunter.engine.game_map.tiles[clmp_y][clmp_x].explored = curr_visible or prev_visible
+
+                if curr_visible or prev_visible:
+                    self.hunter.engine.game_map.tiles[clmp_y][clmp_x].reveal()
 
     def perform(self):
         flog.debug("hunter is moving")
@@ -284,14 +286,8 @@ class MovementAction():
         if not self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
             return  # Destination is blocked by a tile.
 
-        # remove reference from origin tile
-        orig_tile = self.hunter.engine.game_map.tiles[self.hunter.y][self.hunter.x]
-        for entity in orig_tile.entities:
-            if entity == self.hunter:
-                orig_tile.entities.remove(entity)
-        
-        # add reference to destination tile
-        self.hunter.engine.game_map.tiles[dest_y][dest_x].entities.append(self.hunter)
+        self.hunter.engine.game_map.tiles[self.hunter.y][self.hunter.x].remove_entities([self.hunter])
+        self.hunter.engine.game_map.tiles[dest_y][dest_x].add_entities([self.hunter])
 
         self.hunter.move(self.dx, self.dy)
         self.remember_terrain(self.hunter)

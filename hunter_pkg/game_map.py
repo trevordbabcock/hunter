@@ -1,3 +1,4 @@
+import numpy as np
 from tcod.console import Console
 
 from hunter_pkg.entities import berry_bush as bb
@@ -21,6 +22,7 @@ class GameMap:
         self.tiles, self.path_map = self.init_empty_map()
         self.show_fog = show_fog
         self.load_map_from_file('resources/maps/large_zoomed_map.txt')
+        self.redraw_all()
 
     def init_empty_map(self):
         tiles = []
@@ -54,14 +56,21 @@ class GameMap:
         return 0 <= x < self.width and 0 <= y < self.height
 
     def render(self, console, time_of_day):
-        for y in range(self.height):
-            for x in range(self.width):
-                console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt(time_of_day)
+        indices = np.argwhere(self.redraw_matrix>0)
 
-    def add_entities_to_tile(self, x, y, entities):
-        for e in entities:
-            self.tiles[y][x].entities.append(e)
+        for y, x in indices:
+            console.tiles_rgb[x,y] = self.tiles[y][x].get_graphic_dt(time_of_day)
 
+        self.redraw_reset()
+
+    def redraw_tile(self, x, y):
+        self.redraw_matrix[y, x] = True
+
+    def redraw_reset(self):
+        self.redraw_matrix = np.zeros((self.height, self.width), dtype=bool)
+
+    def redraw_all(self):
+        self.redraw_matrix = np.ones((self.height, self.width), dtype=bool)
 
 class Tile:
     def __init__(self, game_map, terrain, x, y):
@@ -104,3 +113,21 @@ class Tile:
                 return self.terrain.get_graphic_dt(time_of_day, None, None, colors.light_gray())
 
         return self.terrain.get_graphic_dt(time_of_day, None, None, None) # gross as hell
+
+    def add_entities(self, entities):
+        self.entities.extend(entities)
+        self.redraw()
+
+    def remove_entities(self, entities):
+        for e in entities:
+            self.entities.remove(e)
+
+        self.redraw()
+
+    def reveal(self):
+        self.explored = True
+        self.redraw()
+    
+    def redraw(self):
+        self.game_map.redraw_tile(self.x, self.y)
+    
