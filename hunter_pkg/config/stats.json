@@ -1,28 +1,28 @@
 {
     "settings": {
-        "game-speed": 3.0,
+        "game-speed": 2.0,
         "show-fog": false,
         "show-ui": true,
         "game-time": {
-            "initial": 6000.0,
+            "initial": 0.06,
             "factors": {
-                "night": 2.4,
-                "morning": 2.0,
-                "afternoon": 2.0,
-                "evening": 2.0
+                "night": 0.000024,
+                "morning": 0.00002,
+                "afternoon": 0.00002,
+                "evening": 0.00002
             },
             "thresholds": {
-                "max": 23999.0,
-                "morning": 6000.0,
-                "afternoon": 12000.0,
-                "evening": 17000.0,
-                "night": 20000.0
+                "max": 0.24,
+                "morning": 0.06,
+                "afternoon": 0.12,
+                "evening": 0.17,
+                "night": 0.2
             }
         }
     },
     "berry-bush": {
         "spawn": 0.02,
-        "update-interval": 45000,
+        "update-interval": 0.02,
         "spawn-min-berries": 5,
         "spawn-max-berries": 10,
         "grow-min-berries": 1,
@@ -42,7 +42,7 @@
         "damage": 10
     },
     "fire-pit": {
-        "duration": 120000
+        "duration": 0.06
     },
     "ground": {
         "sleep-comfort": 0.2,
@@ -74,9 +74,9 @@
         "hunger-threshold-low": 35,
         "hunger-threshold-high": 50,
         "tired-threshold": 15,
-        "update-interval-start": 1000,
-        "update-interval-end" :1500,
-        "update-interval-step": 100,
+        "update-interval-start": 0.001,
+        "update-interval-end" :0.0015,
+        "update-interval-step": 0.0001,
         "accuracy": 0.9,
         "max-path-distance": 12,
         "roam-candidates": 3,
@@ -89,12 +89,13 @@
         "spawn": 0.01,
         "hunger-chance": 0.7,
         "sleep-in-chance": 0.7,
-        "update-interval-start": 1000,
-        "update-interval-end" :3000,
-        "update-interval-step": 100,
+        "update-interval-start": 0.001,
+        "update-interval-end" :0.0015,
+        "update-interval-step": 0.0001,
         "max-health": 5,
         "starting-health": 5,
         "nutritional-value": 17,
+        "roam-distance": 3,
         "vision-distance": {
             "morning": 1,
             "afternoon": 1,

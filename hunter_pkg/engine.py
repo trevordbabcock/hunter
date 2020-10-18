@@ -1,5 +1,6 @@
 from bisect import insort
 from collections import deque
+from math import floor
 from time import time
 from typing import Set, Iterable, Any
 
@@ -32,7 +33,6 @@ class Engine:
     def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
         self.game_speed = stats.Stats.map()["settings"]["game-speed"]
         self.game_time = stats.Stats.map()["settings"]["game-time"]["initial"]
-        self.num_days = 0
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
@@ -62,31 +62,31 @@ class Engine:
     def advance_game_time(self):
         prev_time = self.game_time
         prev_time_of_day = self.get_time_of_day(prev_time)
-        new_time = self.game_time + (stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day] * self.game_speed)
+        factor = stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day]
+        new_time = self.game_time + (factor * self.game_speed)
         new_time_of_day = self.time_of_day = self.get_time_of_day(new_time)
 
         if new_time_of_day != prev_time_of_day:
             flog.debug(f"it's now {new_time_of_day}")
             self.game_map.redraw_all()
 
-        if new_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
+        if math.get_decimal(new_time) >= stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
-            self.game_time = 0
-            self.num_days += 1
-
             if self.hunter.alive:
                 self.hunter.days_survived += 1
-        else:
-            self.game_time = new_time
+
+        self.game_time = math.round_game_time(new_time)
     
-    def get_time_of_day(self, time):
-        if time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["night"]:
+    def get_time_of_day(self, full_time):
+        day_time = full_time - floor(full_time)
+
+        if day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["night"]:
             return tod.NIGHT
-        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["evening"]:
+        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["evening"]:
             return tod.EVENING
-        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["afternoon"]:
+        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["afternoon"]:
             return tod.AFTERNOON
-        elif time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["morning"]:
+        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["morning"]:
             return tod.MORNING
         else:
             return tod.NIGHT
@@ -96,7 +96,7 @@ class Engine:
         while(len(self.event_queue) > 0):
             event = self.event_queue[0]
 
-            if event.time < time():
+            if event.time < self.game_time:
                 event.process()
                 self.event_queue.popleft()
                 if event.entity.requeue():

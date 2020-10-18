@@ -9,6 +9,8 @@ import tcod
 from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import hunter as htr
 
+from hunter_pkg.helpers import rng
+
 from hunter_pkg import colors
 from hunter_pkg import engine as eng
 from hunter_pkg import event
@@ -22,6 +24,10 @@ from hunter_pkg import stats
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 def main() -> None:
+    seed = stats.Stats.map()["settings"]["seed"] if "seed" in stats.Stats.map()["settings"] else round(time.time())
+    flog.info(f"rng seed: {seed}")
+    rng.set_seed(seed)
+
     stats_file = sys.argv[1] if len(sys.argv) == 2 else "hunter_pkg/config/stats.json"
     stats.Stats.map(stats_file)
     seconds_per_frame = 0.016

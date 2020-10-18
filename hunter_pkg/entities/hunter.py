@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections import deque
 from datetime import timedelta
 import json
-from numpy.random import randint
 from time import time
 
 from hunter_pkg.entities import camp as cp
@@ -211,8 +210,8 @@ class HunterAI():
 
             # get 3 candidate distinations
             while(len(candidates) < stats.Stats.map()["hunter"]["roam-candidates"]):
-                dest_x = math.clamp(rng.range(self.hunter.x - dist, self.hunter.x + dist), 0, self.hunter.engine.game_map.width - 1)
-                dest_y = math.clamp(rng.range(self.hunter.y - dist, self.hunter.y + dist), 0, self.hunter.engine.game_map.height - 1)
+                dest_x = math.clamp(rng.range_int(self.hunter.x - dist, self.hunter.x + dist + 1), 0, self.hunter.engine.game_map.width - 1)
+                dest_y = math.clamp(rng.range_int(self.hunter.y - dist, self.hunter.y + dist + 1), 0, self.hunter.engine.game_map.height - 1)
 
                 if [dest_x, dest_y] not in forbidden:
                     if self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:

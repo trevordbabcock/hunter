@@ -1,4 +1,3 @@
-import numpy.random as nprand
 from typing import Tuple
 
 from hunter_pkg.helpers import math
@@ -40,7 +39,7 @@ class IntelligentEntity(Entity):
         self.min_energy, self.max_energy = [0, 0]
 
     def get_update_interval(self):
-        return (rng.range(self.update_interval_start, self.update_interval_stop, self.update_interval_step) * 0.001) * (1.0/self.engine.game_speed)
+        return rng.range_float(self.update_interval_start, self.update_interval_stop, self.update_interval_step)
 
     def requeue(self):
         return self.alive

@@ -5,6 +5,8 @@ from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import berry_bush as bb
 
+from hunter_pkg.helpers import math
+
 from hunter_pkg import colors
 
 
@@ -64,7 +66,8 @@ class StatsPanel(UIPanel):
         Format game_time from int to str.
         Example: 20900 to "20:50"
         """
-        time_str = "{:04.0f}".format(game_time/10)
+        day_time = math.get_decimal(game_time)
+        time_str = "{:04.0f}".format(day_time*10000)
         # this converts hour subdivisions from 100 to 60 (minutes)
         converted_minute_int = floor(int(time_str[2] + time_str[3])/100 * 60)
         minute_str = str(converted_minute_int)

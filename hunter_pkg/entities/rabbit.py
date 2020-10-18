@@ -1,5 +1,4 @@
 from collections import deque
-from numpy.random import randint
 
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import entity_actions as enta
@@ -99,10 +98,11 @@ class RabbitAI():
 
     def roam(self):
         flog.debug("rabbit is romaing")
+        dist = stats.Stats.map()["rabbit"]["roam-distance"]
         max_x = self.rabbit.engine.game_map.width - 1
         max_y = self.rabbit.engine.game_map.height - 1
-        dest_x = math.clamp(self.rabbit.x + rng.range(-3, 3), 0, max_x)
-        dest_y = math.clamp(self.rabbit.y + rng.range(-3, 3), 0, max_y)
+        dest_x = math.clamp(rng.range_int(self.rabbit.x - dist, self.rabbit.x + dist + 1), 0, max_x)
+        dest_y = math.clamp(rng.range_int(self.rabbit.y - dist, self.rabbit.y + dist + 1), 0, max_y)
         dest = self.rabbit.engine.game_map.tiles[dest_y][dest_x]
 
         for action in pf.path_to(self.rabbit, [dest.x, dest.y], MovementAction):
