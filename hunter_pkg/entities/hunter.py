@@ -225,14 +225,16 @@ class HunterAI():
             candidates = sorted(candidates, key=lambda x: (-x[2], -x[3]))
 
             for dest in candidates:
+                x = dest[0]
+                y = dest[1]
                 # prefer to take the first one that is in fog and farthest away
                 # this way hunter will tend to travel longer distances and explore more fog
-                actions = pf.path_to(self.hunter, [dest_x, dest_y], MovementAction)
+                actions = pf.path_to(self.hunter, [x, y], MovementAction)
 
                 if len(actions) < stats.Stats.map()["hunter"]["max-path-distance"]:
                     return actions
                 else:
-                    forbidden.append([dest_x, dest_y])
+                    forbidden.append([x, y])
 
 
 class HunterMemory():
