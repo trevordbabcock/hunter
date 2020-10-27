@@ -21,8 +21,8 @@
         }
     },
     "berry-bush": {
-        "spawn": 0.02,
-        "update-interval": 0.02,
+        "spawn": 0.018,
+        "update-interval": 800,
         "spawn-min-berries": 5,
         "spawn-max-berries": 10,
         "grow-min-berries": 1,
