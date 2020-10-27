@@ -78,5 +78,5 @@ Run the game:
 * **v1 - prototype map size scaling**
   * **v1.1** - add save functionality
   * **v1.2**
-* **v2 - improve graphics**
-* **v3 - ???**
+* **v2 - add another ecosystem**
+* **v3 - improve graphics?**

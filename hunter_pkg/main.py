@@ -31,24 +31,30 @@ def main() -> None:
     stats_file = sys.argv[1] if len(sys.argv) == 2 else "hunter_pkg/config/stats.json"
     stats.Stats.map(stats_file)
     seconds_per_frame = 0.016
-    screen_width = 80
-    screen_height = 50
 
-    map_width = 80
-    map_height = 50
+    width = 120
+    height = 75
+    screen_width = width
+    screen_height = height
+    map_width = width
+    map_height = height
 
     tileset = tcod.tileset.load_tilesheet(
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
     )
 
     input_handler = input_handlers.InputHandler()
-    game_map = gm.GameMap(map_width, map_height, stats.Stats.map()["settings"]["show-fog"])
+    game_map = gm.GameMap(map_width, map_height, seed, stats.Stats.map()["settings"]["show-fog"])
     engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
 
-    hunter = htr.Hunter(engine, stats.Stats.map()["hunter"]["x-spawn"], stats.Stats.map()["hunter"]["y-spawn"])
-    game_map.tiles[hunter.y][hunter.x].add_entities([hunter])
-    camp = cp.Camp(engine, stats.Stats.map()["hunter"]["camp"]["x-spawn"], stats.Stats.map()["hunter"]["camp"]["y-spawn"])
+    x, y = engine.find_hunter_spawn_point()
+    
+    camp = cp.Camp(engine, x, y)
     game_map.tiles[camp.y][camp.x].add_entities([camp])
+
+    hunter = htr.Hunter(engine, camp.x, camp.y)
+    game_map.tiles[hunter.y][hunter.x].add_entities([hunter])
+
     # hard-coding knowledge of camp for now
     hunter.memory.map["camp"] = {
         "x": camp.x,

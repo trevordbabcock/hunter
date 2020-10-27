@@ -126,10 +126,14 @@ class Engine:
         return intelligent_entities, static_entities
 
     def init_stats_panel(self):
-        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=48, width=17, engine=self)
+        margin = 2
+        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=self.game_map.height - margin, width=17, engine=self)
 
     def init_action_log_panel(self):
-        self.action_log_panel = ui_panel.ActionLogPanel(x=20, y=36, height=13, width=56, engine=self)
+        x = 20
+        height = 13
+        margin = 2
+        self.action_log_panel = ui_panel.ActionLogPanel(x=x, y=self.game_map.height - height - 1, height=height, width=self.game_map.width - x - margin, engine=self)
 
     # TODO dedup this (duplicated in hunter.py)
     def init_fog_reveal(self):
@@ -155,6 +159,21 @@ class Engine:
                 curr_visible = vision_map[rel_y][rel_x].visible
                 self.hunter.memory.map["explored-terrain"][f"{clmp_x},{clmp_y}"] = curr_visible or prev_visible
                 self.hunter.engine.game_map.tiles[clmp_y][clmp_x].explored = curr_visible or prev_visible
+
+    def find_hunter_spawn_point(self):
+        camp_x_min = round(self.game_map.width * 0.25)
+        camp_x_max = round(self.game_map.width * 0.75)
+        camp_y_min = round(self.game_map.height * 0.25)
+        camp_y_max = round(self.game_map.height * 0.75)
+        found = False
+
+        # TODO make this smarter
+        while(not found):
+            x = rng.range_int(camp_x_min, camp_x_max)
+            y = rng.range_int(camp_y_min, camp_y_max)
+
+            if self.game_map.tiles[y][x].terrain.walkable:
+                return [x, y]
 
     def render(self, console: Console, context: Context) -> None:
         self.game_map.render(console, self.time_of_day)

@@ -1,38 +1,95 @@
 #!/usr/bin/env ruby
 
 require 'json'
+require 'optparse'
+require 'pry'
 
-WATER = " \033[34m~\033[00m"
-LAND = " \033[32mG\033[00m"
-MOUNTAIN = " \033[31m^\033[00m"
-FOREST = " \033[33mF\033[00m"
 
+class Terrain
+  class Water
+    def self.char()
+      "~"
+    end
+
+    def self.color()
+      "\033[34m"
+    end
+  end
+
+  class Ground
+    def self.char()
+      "G"
+    end
+
+    def self.color()
+      "\033[32m"
+    end
+  end
+
+  class Mountain
+    def self.char()
+      "^"
+    end
+
+    def self.color()
+      "\033[31m"
+    end
+  end
+
+  class Forest
+    def self.char()
+      "F"
+    end
+
+    def self.color()
+      "\033[33m"
+    end
+  end
+end
 
 class Map
-  attr_accessor :grid
+  attr_accessor :grid, :seed
 
-  def initialize(height, width)
+  def initialize(height, width, seed)
     @grid = []
+    @seed = seed
     @height = height
     @width = width
 
     @height.times do |n|
       row = []
       @width.times do |m|
-        row << Cell.new(m, n, WATER)
+        row << Cell.new(m, n, Terrain::Water)
       end
       @grid[n] = row
     end
   end
 
   def render()
-    @grid.reverse.each do |r|
-      r.each do |c|
-        print c.value
+    @grid.reverse.each do |row|
+      row.each do |cell|
+        print cell.render()
       end
 
       puts
     end
+  end
+
+  def render_json()
+    @grid.reverse.each_with_index do |row,i|
+      tmp = []
+      row.each_with_index do |cell,j|
+        tmp << cell.terrain.char
+      end
+      @grid[i] = tmp
+    end
+
+    map = {
+      "seed" => @seed,
+      "grid" => @grid,
+    }
+
+    puts JSON.pretty_generate(map)
   end
 
   def cell(x, y)
@@ -77,23 +134,21 @@ class Map
 end
 
 class Cell
-  attr_accessor :x, :y, :value
+  attr_accessor :x, :y, :terrain
 
-  def initialize(x, y, value)
+  def initialize(x, y, terrain)
     @x = x
     @y = y
-    @value = value
+    @terrain = terrain
+  end
+
+  def render()
+    return " #{terrain.color}#{terrain.char}\033[00m"
   end
 end
 
-def generate_map(height, width, config, iteration_order)
-  map = Map.new(height, width)
-
-  map.grid.each do |r|
-    r.each do |c|
-      c = WATER
-    end
-  end
+def generate_map(height, width, config, iteration_order, seed)
+  map = Map.new(height, width, seed)
 
   map = generate_land(map, config["land"], iteration_order)
   map = generate_mountains(map, config["mountain"], iteration_order)
@@ -107,17 +162,17 @@ def generate_land(map, config, iteration_order)
     x, y = coord
 
     likelihood = config["base-percentage"]
-    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).value == LAND
-    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).value == LAND
-    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).value == LAND
-    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).value == LAND
-    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).value == LAND
-    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).value == LAND
-    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).value == LAND
-    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).value == LAND
+    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).terrain == Terrain::Ground
+    likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).terrain == Terrain::Ground
 
     if rand(config["max-likelihood"]) < likelihood
-      map.cell(x, y).value = LAND
+      map.cell(x, y).terrain = Terrain::Ground
     end
   end
 
@@ -128,19 +183,19 @@ def generate_mountains(map, config, iteration_order)
   iteration_order.each do |coord|
     x, y = coord
 
-    if map.cell(x, y).value != WATER
+    if map.cell(x, y).terrain != Terrain::Water
       likelihood = config["base-percentage"]
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).value == MOUNTAIN
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).terrain == Terrain::Mountain
 
       if rand(config["max-likelihood"]) < likelihood
-        map.cell(x, y).value = MOUNTAIN
+        map.cell(x, y).terrain = Terrain::Mountain
       end
     end
   end
@@ -151,29 +206,29 @@ end
 def generate_forests(map, config, iteration_order)
   iteration_order.each do |coord|
     x, y = coord
-    if ![WATER, MOUNTAIN].include?(map.cell(x, y))
+    if ![Terrain::Water, Terrain::Mountain].include?(map.cell(x, y))
       likelihood = config["base-percentage"]
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).value == FOREST
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).value == FOREST
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).value == FOREST
-      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).value == FOREST
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).value == FOREST
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).value == FOREST
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).value == FOREST
-      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).value == FOREST
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["orthogonal-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northeast_of(x, y) && map.northeast_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southeast_of(x, y) && map.southeast_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.southwest_of(x, y) && map.southwest_of(x, y).terrain == Terrain::Forest
+      likelihood = likelihood + config["diagonal-adjacency-add-percentage"] if map.northwest_of(x, y) && map.northwest_of(x, y).terrain == Terrain::Forest
 
-      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).value == MOUNTAIN
-      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).value == MOUNTAIN
+      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.north_of(x, y) && map.north_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.south_of(x, y) && map.south_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.east_of(x, y) && map.east_of(x, y).terrain == Terrain::Mountain
+      likelihood = likelihood + config["mountain-adjacency-add-percentage"] if map.west_of(x, y) && map.west_of(x, y).terrain == Terrain::Mountain
 
-      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.north_of(x, y) && map.north_of(x, y).value == WATER
-      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.south_of(x, y) && map.south_of(x, y).value == WATER
-      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.east_of(x, y) && map.east_of(x, y).value == WATER
-      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.west_of(x, y) && map.west_of(x, y).value == WATER
+      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.north_of(x, y) && map.north_of(x, y).terrain == Terrain::Water
+      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.south_of(x, y) && map.south_of(x, y).terrain == Terrain::Water
+      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.east_of(x, y) && map.east_of(x, y).terrain == Terrain::Water
+      likelihood = likelihood - config["water-adjacency-subtract-percentage"] if map.west_of(x, y) && map.west_of(x, y).terrain == Terrain::Water
 
       if rand(config["max-likelihood"]) < likelihood
-        map.cell(x, y).value = FOREST
+        map.cell(x, y).terrain = Terrain::Forest
       end
     end
   end
@@ -200,23 +255,33 @@ def get_iteration_order(type, grid_height, grid_width)
 end
 
 
-if ARGV.count == 0
-  puts "generate_map.rb [dimensions] [config_file_path] [seed]"
-  puts "Example: generate_map.rb 64x64 config/standard-map.json 1235"
-else
-  map_height, map_width = ARGV[0].split("x").collect{|d| d.to_i}
+options = {}
+OptionParser.new do |opts|
+  opts.banner = 'generate_map.rb [dimensions] [config_file_path] [seed] [--json]\n'\
+                'Example: generate_map.rb 64x64 config/standard-map.json 1235\n\n'\
 
-  config_file_path = ARGV[1]
-  file_contents = File.read(config_file_path)
-  config = JSON.parse(file_contents)
+  opts.on("-j", "--json", "Dump map as json") do |j|
+    options[:json] = j
+  end
+end.parse!
 
-  seed = ARGV[2] || rand(1000000000)
-  srand(seed.to_i)
+map_height, map_width = ARGV[0].split("x").collect{|d| d.to_i}
 
-  map = generate_map(map_height, map_width, config, get_iteration_order(config["iteration_type"], map_height, map_width))
+config_file_path = ARGV[1]
+file_contents = File.read(config_file_path)
+config = JSON.parse(file_contents)
+
+seed = (ARGV[2] || rand(1000000000)).to_i
+srand(seed)
+
+map = generate_map(map_height, map_width, config, get_iteration_order(config["iteration_type"], map_height, map_width), seed)
+
+if !options[:json]
   map.render()
-  
+
   puts "Config: #{config_file_path}"
   puts "Dimensions: #{map_height}x#{map_width}"
   puts "Seed: #{seed}"
+else
+  map.render_json()
 end

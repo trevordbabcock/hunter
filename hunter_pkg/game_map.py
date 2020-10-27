@@ -1,4 +1,6 @@
+from json import loads
 import numpy as np
+from os import popen
 from tcod.console import Console
 
 from hunter_pkg.entities import berry_bush as bb
@@ -16,12 +18,13 @@ terrain_map = {
 }
 
 class GameMap:
-    def __init__(self, width: int, height: int, show_fog):
+    def __init__(self, width, height, seed, show_fog):
         self.height = height
         self.width = width
         self.tiles, self.path_map = self.init_empty_map()
         self.show_fog = show_fog
-        self.load_map_from_file('resources/maps/large_zoomed_map.txt')
+        self.generate_map(seed)
+        #self.load_map_from_file('resources/maps/large_zoomed_map.txt')
         self.redraw_all()
 
     def init_empty_map(self):
@@ -51,7 +54,18 @@ class GameMap:
                 line = file.readline()
                 y = y + 1
 
-    def in_bounds(self, x: int, y: int) -> bool:
+    def generate_map(self, seed):
+        stream = popen(f"ruby bin/generate_map.rb {self.height}x{self.width} hunter_pkg/config/map/standard-map.json {seed} --json")
+        map_data = loads(stream.read())
+
+        for y in range(len(map_data["grid"])):
+            row = map_data["grid"][y]
+            for x in range(len(row)):
+                self.tiles[y].append(Tile(self, terrain_map[row[x].strip()], x, y))
+                self.path_map[y].append(1 if self.tiles[y][x].terrain.walkable else 0)
+
+
+    def in_bounds(self, x, y):
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
 

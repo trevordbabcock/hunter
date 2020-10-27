@@ -2,22 +2,22 @@
     "iteration_type": "standard",
     "land": {
         "max-likelihood": 100,
-        "base-percentage": 8,
+        "base-percentage": 11,
         "orthogonal-adjacency-add-percentage": 26,
         "diagonal-adjacency-add-percentage": 18
     },
     "mountain": {
         "max-likelihood": 100,
         "base-percentage": 2,
-        "orthogonal-adjacency-add-percentage": 21,
-        "diagonal-adjacency-add-percentage": 18
+        "orthogonal-adjacency-add-percentage": 25,
+        "diagonal-adjacency-add-percentage": 22
     },
     "forest": {
         "max-likelihood": 100,
-        "base-percentage": 5,
-        "orthogonal-adjacency-add-percentage": 35,
+        "base-percentage": 4,
+        "orthogonal-adjacency-add-percentage": 34,
         "diagonal-adjacency-add-percentage": 12,
-        "mountain-adjacency-add-percentage": 5,
+        "mountain-adjacency-add-percentage": 4,
         "water-adjacency-subtract-percentage": 10
     }
 }
