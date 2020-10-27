@@ -68,7 +68,7 @@ class Engine:
 
         if new_time_of_day != prev_time_of_day:
             flog.debug(f"it's now {new_time_of_day}")
-            self.game_map.redraw_all()
+            self.game_map.redraw_all_transition()
 
         if math.get_decimal(new_time) >= stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
@@ -176,6 +176,7 @@ class Engine:
                 return [x, y]
 
     def render(self, console: Console, context: Context) -> None:
+        self.game_map.progress_redraw_all_transition()
         self.game_map.render(console, self.time_of_day)
 
         for entity in self.intelligent_entities:

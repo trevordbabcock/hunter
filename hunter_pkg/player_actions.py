@@ -41,10 +41,11 @@ class MouseMovementPlayerAction(PlayerAction):
 
 class ToggleVisionPlayerAction(PlayerAction):
     def perform(self, engine):
-        new_setting = not engine.settings["show-fog"]
-        engine.settings["show-fog"] = new_setting
-        engine.game_map.show_fog = new_setting
-        engine.game_map.redraw_all()
+        if engine.game_map.next_redraw_column == None:
+            new_setting = not engine.settings["show-fog"]
+            engine.settings["show-fog"] = new_setting
+            engine.game_map.show_fog = new_setting        
+            engine.game_map.redraw_all_transition()
 
 
 class ToggleUIPlayerAction(PlayerAction):

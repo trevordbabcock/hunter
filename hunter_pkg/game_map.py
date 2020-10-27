@@ -23,6 +23,7 @@ class GameMap:
         self.width = width
         self.tiles, self.path_map = self.init_empty_map()
         self.show_fog = show_fog
+        self.next_redraw_column = None
         self.generate_map(seed)
         #self.load_map_from_file('resources/maps/large_zoomed_map.txt')
         self.redraw_all()
@@ -85,6 +86,22 @@ class GameMap:
 
     def redraw_all(self):
         self.redraw_matrix = np.ones((self.height, self.width), dtype=bool)
+
+    def redraw_all_transition(self):
+        self.next_redraw_column = self.width - 1
+
+    def progress_redraw_all_transition(self):
+        if self.next_redraw_column != None:
+            for i in range(3):
+                for row in self.redraw_matrix:
+                    row[self.next_redraw_column] = True
+                
+                if self.next_redraw_column == 0:
+                    self.next_redraw_column = None
+                    break
+                else:
+                    self.next_redraw_column -= 1
+
 
 class Tile:
     def __init__(self, game_map, terrain, x, y):
