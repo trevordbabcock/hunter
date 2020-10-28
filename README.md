@@ -75,8 +75,14 @@ Run the game:
   * ~~**v0.7** - revise hunger/health/energy system, improve rabbit behavior, improve hunter ai~~
   * **v0.8** - include procedural map generation, increase map size, improve game balance
   * **v0.9** - add wolves
-* **v1 - prototype map size scaling**
-  * **v1.1** - add save functionality
-  * **v1.2**
-* **v2 - add another ecosystem**
-* **v3 - improve graphics?**
+* **v1 - improve ecosystem**
+  * **v1.1** - add another creature 1
+  * **v1.2** - add another creature 2
+  * **v1.3** - add point of interest 1
+  * **v1.4** - add point of interest 2
+* **v2 - prototype map size scaling**  
+* **v3 - prototype map size scaling**
+  * **v3.1** - add save functionality
+  * **v3.2**
+
+* **v4 - improve graphics?**
