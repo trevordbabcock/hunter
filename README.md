@@ -73,7 +73,7 @@ Run the game:
   * ~~**v0.5** - add day/night cycle, add hunter action log, add fog of war, add tile examination~~
   * ~~**v0.6** - add hunter sleep, add hunter camp, track hunter stats, fog of war toggle,add hunter bow and arrow, add rabbit hunting~~
   * ~~**v0.7** - revise hunger/health/energy system, improve rabbit behavior, improve hunter ai~~
-  * **v0.8** - include procedural map generation, increase map size, improve game balance
+  * ~~**v0.8** - include procedural map generation, increase map size, improve game balance~~
   * **v0.9** - add wolves
 * **v1 - improve ecosystem**
   * **v1.1** - add another creature 1

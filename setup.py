@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="hunter-tdb",
-    version="0.7.0",
+    version="0.8.1",
     author="Trevor Babcock",
     author_email="trevor.d.babcock@gmail.com",
     description="A virtual ant farm of sorts",
