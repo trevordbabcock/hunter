@@ -2,7 +2,7 @@
 
 require 'json'
 require 'optparse'
-require 'pry'
+#require 'pry'
 
 
 class Terrain
