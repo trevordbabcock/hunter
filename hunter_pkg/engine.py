@@ -8,8 +8,9 @@ import numpy.random as nprand
 from tcod.context import Context
 from tcod.console import Console
 
-from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import berry_bush as bb
+from hunter_pkg.entities import rabbit as rbt
+from hunter_pkg.entities import wolf as wlf
 
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
@@ -117,6 +118,10 @@ class Engine:
                         rabbit.burrow = burrow
                         self.game_map.tiles[y][x].add_entities([burrow, rabbit])
                         intelligent_entities.append(rabbit)
+                    if rng.rand() < stats.Stats.map()["wolf"]["spawn"]:
+                        wolf = wlf.Wolf(self, x, y)
+                        self.game_map.tiles[y][x].entities.append(wolf)
+                        intelligent_entities.append(wolf)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)

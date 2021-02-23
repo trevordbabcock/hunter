@@ -97,7 +97,7 @@ class RabbitAI():
         return actions
 
     def roam(self):
-        flog.debug("rabbit is romaing")
+        flog.debug("rabbit is roaming")
         dist = stats.Stats.map()["rabbit"]["roam-distance"]
         max_x = self.rabbit.engine.game_map.width - 1
         max_y = self.rabbit.engine.game_map.height - 1
@@ -138,9 +138,6 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         self.search_for_classes = [c.__name__ for c in search_for_classes]
     
     def perform(self):
-        if self.rabbit.x == 79 and self.rabbit.y == 0:
-            flog.debug("here")
-
         search_area = self.get_search_area(self.rabbit, self.search_radius, vsmap.square)
         found_terrain = self.find_terrain(search_area, self.search_for_classes)
 

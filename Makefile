@@ -1,6 +1,6 @@
 unit:
 	@echo "Running unit tests..."
-	python -m unittest tests/test_entity.py
+	python -m unittest tests/test_vision_map.py
 
 egg:
 	@echo "Building egg..."
