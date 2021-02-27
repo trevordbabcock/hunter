@@ -28,12 +28,16 @@ class Wolf(base_entity.IntelligentEntity):
         self.max_health = stats.Stats.map()["wolf"]["max-health"]
         self.curr_health = stats.Stats.map()["wolf"]["starting-health"]
         self.vision_distance = stats.Stats.map()["wolf"]["vision-distance"]
+        self.attk_dmg = stats.Stats.map()["wolf"]["attack-damage"]
         self.recent_actions = []
         self.hidden = False
 
     def is_hungry(self):
         return True
     
+    def in_range(self, target):
+        return self.x == target.x and self.y == target.y
+
     def die(self):
         flog.debug("a wolf died")
         self.alive = False
@@ -77,7 +81,7 @@ class WolfAI():
         dest_y = math.clamp(rng.range_int(self.wolf.y - dist, self.wolf.y + dist + 1), 0, max_y)
         dest = self.wolf.engine.game_map.tiles[dest_y][dest_x]
 
-        for action in pf.path_to(self.wolf, [dest.x, dest.y], MovementAction):
+        for action in pf.path_to_dest(self.wolf, [dest.x, dest.y], MovementAction):
             self.wolf.ai.action_queue.append(action)
 
 
@@ -89,17 +93,6 @@ class MovementAction():
     
     def perform(self):
         if self.wolf.alive:
-            dest_x = self.wolf.x + self.dx
-            dest_y = self.wolf.y + self.dy
-
-            if not self.wolf.engine.game_map.in_bounds(dest_x, dest_y):
-                return  # Destination is out of bounds.
-            if not self.wolf.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-                return  # Destination is blocked by a tile.
-
-            self.wolf.engine.game_map.tiles[self.wolf.y][self.wolf.x].remove_entities([self.wolf])
-            self.wolf.engine.game_map.tiles[dest_y][dest_x].add_entities([self.wolf])
-
             self.wolf.move(self.dx, self.dy)
 
 
@@ -111,18 +104,29 @@ class SearchAreaAction(enta.SearchAreaActionBase):
     
     def perform(self):
         search_area = self.get_search_area(self.wolf, self.search_radius, vsmap.circle)
-        found_entities = self.find_terrain(search_area, self.search_for_classes)
+        found_entities = self.find_entities(search_area, self.search_for_classes)
 
         if len(found_entities) > 0:
-            rabbit = rng.pick_rand(found_entities) # should find nearest
-
-            for action in pf.path_to(self.wolf, [rabbit.x, rabbit.y], MovementAction):
-                self.wolf.ai.action_queue.append(action)
-            
-            self.wolf.ai.action_queue.append(EatRabbitAction(self.wolf, rabbit))
+            rabbit = rng.pick_rand(found_entities) # TODO should find nearest
+            self.wolf.ai.action_queue.append(PursueAction(self.wolf, rabbit))
         else:
             self.wolf.ai.roam()
 
+class PursueAction():
+    def __init__(self, wolf, target):
+        self.wolf = wolf
+        self.target = target
+
+    def perform(self):
+        flog.debug("wolf is pursuing")
+        if self.wolf.alive:
+            dy, dx = pf.path_to_target(self.wolf, self.target)
+            self.wolf.move(dx, dy)
+
+            if self.wolf.in_range(self.target):
+                self.wolf.ai.action_queue.append(AttackAction(self.wolf, self.target))
+            else:
+                self.wolf.ai.action_queue.append(PursueAction(self.wolf, self.target))
 
 class AttackAction():
     def __init__(self, wolf, target):
@@ -131,6 +135,11 @@ class AttackAction():
 
     def perform(self):
         flog.debug("wolf is attacking")
+        self.target.harm(self.wolf.attk_dmg)
+
+        if not self.target.alive:
+            if isinstance(self.target, rbt.Rabbit):
+                self.wolf.ai.action_queue.append(EatRabbitAction(self.wolf, self.target))
 
 
 class EatRabbitAction():
@@ -140,4 +149,5 @@ class EatRabbitAction():
 
     def perform(self):
         flog.debug("wolf is eating a rabbit")
+        self.rabbit.consume()
             

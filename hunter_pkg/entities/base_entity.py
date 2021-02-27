@@ -1,3 +1,4 @@
+import enum
 from typing import Tuple
 
 from hunter_pkg.helpers import math
@@ -20,7 +21,18 @@ class Entity:
         self.bg_color = bg_color
         self.engine = engine
 
-    def move(self, dx: int, dy: int) -> None:
+    def move(self, dx, dy):
+        dest_x = self.x + dx
+        dest_y = self.y + dy
+
+        if not self.engine.game_map.in_bounds(dest_x, dest_y):
+            return  # Destination is out of bounds.
+        if not self.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
+            return  # Destination is blocked by a tile.
+
+        self.engine.game_map.tiles[self.y][self.x].remove_entities([self])
+        self.engine.game_map.tiles[dest_y][dest_x].add_entities([self])
+
         self.x += dx
         self.y += dy
 

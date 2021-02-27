@@ -1,9 +1,10 @@
 from math import floor
 
+from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
-from hunter_pkg.entities import berry_bush as bb
+from hunter_pkg.entities import wolf as wlf
 
 from hunter_pkg.helpers import math
 
@@ -114,6 +115,8 @@ class StatsPanel(UIPanel):
                             lines.append("~Hntr")
                         elif isinstance(entity, rbt.Rabbit):
                             lines.append("~Rbbt")
+                        elif isinstance(entity, wlf.Wolf):
+                            lines.append("~Wolf")
                         elif isinstance(entity, rbt.Burrow):
                             lines.append("~Brrw")
                         elif isinstance(entity, bb.BerryBush):

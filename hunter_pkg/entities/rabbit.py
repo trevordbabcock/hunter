@@ -38,14 +38,27 @@ class Rabbit(base_entity.IntelligentEntity):
     def is_tired(self):
         return self.engine.time_of_day == tod.MORNING or self.engine.time_of_day == tod.AFTERNOON
     
+    def harm(self, damage):
+        flog.debug("rabbit was harmed")
+        self.curr_health -= damage
+        if self.curr_health <= 0:
+            self.die()
+
     def die(self):
         flog.debug("a rabbit died")
         self.alive = False
         self.char = "x"
 
     def consume(self):
-        self.engine.game_map.tiles[self.y][self.x].entities.remove(self)
+        try:
+            self.engine.game_map.tiles[self.y][self.x].entities.remove(self)
+        except ValueError:
+            return False
+
         self.engine.intelligent_entities.remove(self)
+        self.engine.game_map.redraw_tile(self.x, self.y)
+
+        return True
 
     def hide(self):
         self.hidden = True
@@ -87,7 +100,7 @@ class RabbitAI():
             self.action_queue.append(SearchAreaAction(self.rabbit, (trrn.Grass, trrn.Forest)))
         elif self.rabbit.is_tired():
             flog.debug("rabbit is sleepy")
-            for action in pf.path_to(self.rabbit, [self.rabbit.burrow.x, self.rabbit.burrow.y], MovementAction):
+            for action in pf.path_to_dest(self.rabbit, [self.rabbit.burrow.x, self.rabbit.burrow.y], MovementAction):
                 self.rabbit.ai.action_queue.append(action)
 
             self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
@@ -105,7 +118,7 @@ class RabbitAI():
         dest_y = math.clamp(rng.range_int(self.rabbit.y - dist, self.rabbit.y + dist + 1), 0, max_y)
         dest = self.rabbit.engine.game_map.tiles[dest_y][dest_x]
 
-        for action in pf.path_to(self.rabbit, [dest.x, dest.y], MovementAction):
+        for action in pf.path_to_dest(self.rabbit, [dest.x, dest.y], MovementAction):
             self.rabbit.ai.action_queue.append(action)
 
 
@@ -117,17 +130,6 @@ class MovementAction():
     
     def perform(self):
         if self.rabbit.alive:
-            dest_x = self.rabbit.x + self.dx
-            dest_y = self.rabbit.y + self.dy
-
-            if not self.rabbit.engine.game_map.in_bounds(dest_x, dest_y):
-                return  # Destination is out of bounds.
-            if not self.rabbit.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-                return  # Destination is blocked by a tile.
-
-            self.rabbit.engine.game_map.tiles[self.rabbit.y][self.rabbit.x].remove_entities([self.rabbit])
-            self.rabbit.engine.game_map.tiles[dest_y][dest_x].add_entities([self.rabbit])
-
             self.rabbit.move(self.dx, self.dy)
 
 
@@ -144,7 +146,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         if len(found_terrain) > 0:
             dest = rng.pick_rand(found_terrain)
 
-            for action in pf.path_to(self.rabbit, [dest.x, dest.y], MovementAction):
+            for action in pf.path_to_dest(self.rabbit, [dest.x, dest.y], MovementAction):
                 self.rabbit.ai.action_queue.append(action)
             
             self.rabbit.ai.action_queue.append(GrazeAction(self.rabbit))

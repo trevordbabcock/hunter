@@ -111,6 +111,7 @@
         "max-health": 50,
         "starting-health": 50,
         "roam-distance": 12,
+        "attack-damage": 7,
         "vision-distance": {
             "morning": 5,
             "afternoon": 5,

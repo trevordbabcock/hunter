@@ -109,6 +109,10 @@ class Engine:
         intelligent_entities = []
         static_entities = []
 
+        # wolf = wlf.Wolf(self, 20, 20)
+        # self.game_map.tiles[20][20].entities.append(wolf)
+        # intelligent_entities.append(wolf)
+
         for y, row in enumerate(self.game_map.tiles):
             for x, tile in enumerate(row):
                 if tile.terrain.walkable:

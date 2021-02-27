@@ -171,7 +171,7 @@ class HunterAI():
         #     flog.debug("hunter is SLEEP DEPRIVED and going to camp")
         #     self.hunter.recent_actions.append("Hunter is sleep deprived and going to camp!")
 
-        #     for action in pf.path_to(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
+        #     for action in pf.path_to_dest(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
         #         self.hunter.ai.action_queue.append(action)
             
         #     for component in self.hunter.engine.camp.components:
@@ -187,7 +187,7 @@ class HunterAI():
             self.hunter.recent_actions.append("Hunter is tired!")
             self.hunter.recent_actions.append("Hunter is going to camp.")
 
-            for action in pf.path_to(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
+            for action in pf.path_to_dest(self.hunter, [self.hunter.memory.map["camp"]["x"], self.hunter.memory.map["camp"]["y"]], MovementAction):
                 self.hunter.ai.action_queue.append(action)
             
             for component in self.hunter.engine.camp.components:
@@ -229,7 +229,7 @@ class HunterAI():
                 y = dest[1]
                 # prefer to take the first one that is in fog and farthest away
                 # this way hunter will tend to travel longer distances and explore more fog
-                actions = pf.path_to(self.hunter, [x, y], MovementAction)
+                actions = pf.path_to_dest(self.hunter, [x, y], MovementAction)
 
                 if len(actions) < stats.Stats.map()["hunter"]["max-path-distance"]:
                     return actions
@@ -277,21 +277,10 @@ class MovementAction():
                     self.hunter.engine.game_map.tiles[clmp_y][clmp_x].reveal()
 
     def perform(self):
-        flog.debug("hunter is moving")
-
-        dest_x = self.hunter.x + self.dx
-        dest_y = self.hunter.y + self.dy
-
-        if not self.hunter.engine.game_map.in_bounds(dest_x, dest_y):
-            return  # Destination is out of bounds.
-        if not self.hunter.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-            return  # Destination is blocked by a tile.
-
-        self.hunter.engine.game_map.tiles[self.hunter.y][self.hunter.x].remove_entities([self.hunter])
-        self.hunter.engine.game_map.tiles[dest_y][dest_x].add_entities([self.hunter])
-
-        self.hunter.move(self.dx, self.dy)
-        self.remember_terrain(self.hunter)
+        if self.hunter.alive:
+            flog.debug("hunter is moving")
+            self.hunter.move(self.dx, self.dy)
+            self.remember_terrain(self.hunter)
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
@@ -316,7 +305,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
 
         if nearest_entity != None:
             if isinstance(nearest_entity, bb.BerryBush):
-                for action in pf.path_to(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
+                for action in pf.path_to_dest(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
                     self.hunter.ai.action_queue.append(action)
                 
                 self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, nearest_entity))
@@ -325,7 +314,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
                     self.hunter.ai.action_queue.append(ShootBowAction(self.hunter, self.hunter.bow, nearest_entity))
                 else:
                     self.hunter.recent_actions.append("Hunter is walking to rabbit carcass.")
-                    for action in pf.path_to(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
+                    for action in pf.path_to_dest(self.hunter, [nearest_entity.x, nearest_entity.y], MovementAction):
                         self.hunter.ai.action_queue.append(action)
 
                     self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, nearest_entity))
@@ -415,7 +404,7 @@ class ShootBowAction():
             self.hunter.recent_actions.append("Hunter shot the bow and hit!")
             self.hunter.recent_actions.append("Hunter is walking to rabbit carcass.")
 
-            for action in pf.path_to(self.hunter, [self.target.x, self.target.y], MovementAction):
+            for action in pf.path_to_dest(self.hunter, [self.target.x, self.target.y], MovementAction):
                 self.hunter.ai.action_queue.append(action)
 
             self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, self.target))
