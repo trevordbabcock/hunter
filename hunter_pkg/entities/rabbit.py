@@ -38,11 +38,6 @@ class Rabbit(base_entity.IntelligentEntity):
     def is_tired(self):
         return self.engine.time_of_day == tod.MORNING or self.engine.time_of_day == tod.AFTERNOON
     
-    def harm(self, damage):
-        flog.debug("rabbit was harmed")
-        self.curr_health -= damage
-        if self.curr_health <= 0:
-            self.die()
 
     def die(self):
         flog.debug("a rabbit died")

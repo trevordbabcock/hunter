@@ -59,6 +59,9 @@ class IntelligentEntity(Entity):
     def eat(self, entity):
         raise NotImplementedError
 
+    def harm(self, damage):
+        self.curr_health -= damage
+
     def die(self):
         raise NotImplementedError
 

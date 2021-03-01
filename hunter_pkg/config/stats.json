@@ -104,7 +104,7 @@
         }
     },
     "wolf": {
-        "spawn": 0.001,
+        "spawn": 0.0002,
         "update-interval-start": 0.001,
         "update-interval-end" :0.0015,
         "update-interval-step": 0.0001,

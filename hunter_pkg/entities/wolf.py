@@ -2,6 +2,7 @@ from collections import deque
 
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import entity_actions as enta
+from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 
 from hunter_pkg.helpers import direction
@@ -35,7 +36,7 @@ class Wolf(base_entity.IntelligentEntity):
     def is_hungry(self):
         return True
     
-    def in_range(self, target):
+    def is_target_in_range(self, target):
         return self.x == target.x and self.y == target.y
 
     def die(self):
@@ -66,7 +67,7 @@ class WolfAI():
         
         if self.wolf.is_hungry():
             flog.debug("wolf is hungry")
-            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit]))
+            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, htr.Hunter]))
         else:
             self.roam()
         
@@ -105,10 +106,11 @@ class SearchAreaAction(enta.SearchAreaActionBase):
     def perform(self):
         search_area = self.get_search_area(self.wolf, self.search_radius, vsmap.circle)
         found_entities = self.find_entities(search_area, self.search_for_classes)
+        living_entities = [entity for entity in found_entities if entity.alive]
 
-        if len(found_entities) > 0:
-            rabbit = rng.pick_rand(found_entities) # TODO should find nearest
-            self.wolf.ai.action_queue.append(PursueAction(self.wolf, rabbit))
+        if len(living_entities) > 0:
+            target = rng.pick_rand(living_entities) # TODO should find nearest
+            self.wolf.ai.action_queue.append(PursueAction(self.wolf, target))
         else:
             self.wolf.ai.roam()
 
@@ -123,7 +125,7 @@ class PursueAction():
             dy, dx = pf.path_to_target(self.wolf, self.target)
             self.wolf.move(dx, dy)
 
-            if self.wolf.in_range(self.target):
+            if self.wolf.is_target_in_range(self.target):
                 self.wolf.ai.action_queue.append(AttackAction(self.wolf, self.target))
             else:
                 self.wolf.ai.action_queue.append(PursueAction(self.wolf, self.target))
