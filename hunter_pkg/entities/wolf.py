@@ -136,12 +136,15 @@ class AttackAction():
         self.target = target
 
     def perform(self):
-        flog.debug("wolf is attacking")
-        self.target.harm(self.wolf.attk_dmg)
+        if not self.target.hidden:
+            flog.debug("wolf is attacking")
+            self.target.harm(self.wolf.attk_dmg)
 
-        if not self.target.alive:
-            if isinstance(self.target, rbt.Rabbit):
-                self.wolf.ai.action_queue.append(EatRabbitAction(self.wolf, self.target))
+            if not self.target.alive:
+                if isinstance(self.target, rbt.Rabbit):
+                    self.wolf.ai.action_queue.append(EatRabbitAction(self.wolf, self.target))
+        else:
+            flog.debug("wolf can't attack hidden target")
 
 
 class EatRabbitAction():
