@@ -78,6 +78,7 @@
         "update-interval-end" :0.0015,
         "update-interval-step": 0.0001,
         "accuracy": 0.9,
+        "attack-damage": 12,
         "max-path-distance": 12,
         "roam-candidates": 3,
         "camp": {
@@ -108,7 +109,7 @@
         "update-interval-start": 0.001,
         "update-interval-end" :0.0015,
         "update-interval-step": 0.0001,
-        "max-health": 50,
+        "max-health": 30,
         "starting-health": 50,
         "roam-distance": 12,
         "attack-damage": 7,

@@ -11,6 +11,7 @@ from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import bow as bw
 from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import rabbit as rbt
+from hunter_pkg.entities import wolf as wlf
 
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
@@ -34,6 +35,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.alive = True
         self.asleep = False
         self.hidden = False
+        self.attacked = False
         self.max_hunger = stats.Stats.map()["hunter"]["max-hunger"]
         self.max_health = stats.Stats.map()["hunter"]["max-health"]
         self.max_energy = stats.Stats.map()["hunter"]["max-energy"]
@@ -41,6 +43,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.curr_health = stats.Stats.map()["hunter"]["starting-health"]
         self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
         self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
+        self.attk_dmg = stats.Stats.map()["hunter"]["attack-damage"]
         self.memory = HunterMemory()
         self.recent_actions = []
         self.max_recent_actions = 100
@@ -77,30 +80,46 @@ class Hunter(base_entity.IntelligentEntity):
 
     def is_tired(self):
         return self.curr_energy < stats.Stats.map()["hunter"]["tired-threshold"] or self.engine.time_of_day == tod.NIGHT
+    
+    def is_attacked(self):
+        return self.attacked
 
     def should_wake_up(self):
-        chance_to_wake_up = 0
-
-        if self.bed == None:
-            chance_to_wake_up += stats.Stats.map()["ground"]["wake-chance"]
+        if self.attacked:
+            return True
         else:
-            chance_to_wake_up += self.bed.wake_chance
-        
-        if self.is_affected_by(stfx.Starvation):
-            chance_to_wake_up += self.rand_health_alert()
+            chance_to_wake_up = 0
 
-        roll = rng.rand()
+            if self.bed == None:
+                chance_to_wake_up += stats.Stats.map()["ground"]["wake-chance"]
+            else:
+                chance_to_wake_up += self.bed.wake_chance
+            
+            if self.is_affected_by(stfx.Starvation):
+                chance_to_wake_up += self.rand_health_alert()
 
-        # flog.debug("---chance to wake up---")
-        # flog.debug(f"health: {self.curr_health}")
-        # flog.debug(f"chance: {chance_to_wake_up}")
-        # flog.debug(f"roll: {roll})")
-        # flog.debug(f"res: {chance_to_wake_up > roll}")
+            roll = rng.rand()
 
-        return roll < chance_to_wake_up
+            # flog.debug("---chance to wake up---")
+            # flog.debug(f"health: {self.curr_health}")
+            # flog.debug(f"chance: {chance_to_wake_up}")
+            # flog.debug(f"roll: {roll})")
+            # flog.debug(f"res: {chance_to_wake_up > roll}")
+
+            return roll < chance_to_wake_up
+
+    def wake_up(self):
+        self.recent_actions.append("Hunter woke up.")
+        self.asleep = False
+        self.bed = None
 
     def rand_health_alert(self):
         return 1 - (self.curr_health / self.max_health)
+
+    def harm(self, damage):
+        super().harm(damage)
+        self.recent_actions.append("Hunter was attacked!")
+        self.attacked = True
 
     def die(self):
         flog.debug("omg hunter died")
@@ -153,13 +172,14 @@ class HunterAI():
         self.action_queue = deque()
 
     def perform(self):
-        if len(self.action_queue) > 0:
-            action = self.action_queue.popleft()
-            action.perform()
-        else:
-            actions = self.decide_what_to_do()
-            for a in actions:
-                self.action_queue.append(a)
+        if self.hunter.alive:
+            if len(self.action_queue) > 0:
+                action = self.action_queue.popleft()
+                action.perform()
+            else:
+                actions = self.decide_what_to_do()
+                for a in actions:
+                    self.action_queue.append(a)
     
     def clear_action_queue(self):
         self.action_queue = deque()
@@ -178,7 +198,9 @@ class HunterAI():
         #         if isinstance(component, cp.Bedroll):
         #             self.hunter.ai.action_queue.append(SleepAction(self.hunter, component))
         #             break
-        if self.hunter.is_hungry():
+        if self.hunter.is_attacked():
+            actions.append(SearchAreaAction(self.hunter, [wlf.Wolf]))
+        elif self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
             actions.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit)))
@@ -295,12 +317,6 @@ class SearchAreaAction(enta.SearchAreaActionBase):
 
         search_area = self.get_search_area(self.hunter, self.search_radius, vsmap.circle)
         found_entities = self.find_entities(search_area, self.search_for_classes)
-
-        if len(found_entities) > 0:
-            self.hunter.recent_actions.append(f"Hunter found something to eat.")
-        else:
-            self.hunter.recent_actions.append(f"Hunter couldn't find anything to eat.")
-
         nearest_entity = self.get_nearest_entity(self.hunter, found_entities)
 
         if nearest_entity != None:
@@ -309,6 +325,8 @@ class SearchAreaAction(enta.SearchAreaActionBase):
                     self.hunter.ai.action_queue.append(action)
                 
                 self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, nearest_entity))
+            elif isinstance(nearest_entity, wlf.Wolf):
+                self.hunter.ai.action_queue.append(PursueAction(self.hunter, nearest_entity))
             else: # rbt.Rabbit
                 if nearest_entity.alive:
                     self.hunter.ai.action_queue.append(ShootBowAction(self.hunter, self.hunter.bow, nearest_entity))
@@ -329,25 +347,28 @@ class PickAndEatAction():
         self.static_entity = static_entity
 
     def perform(self):
-        flog.debug("hunter is picking and eating")
-        self.hunter.recent_actions.append("Hunter is picking and eating a berry.")
-
-        berry = self.static_entity.pick_berry()
-
-        if berry != None:
-            self.hunter.eat(berry)
-            
-            if self.hunter.is_still_hungry():
-                flog.debug("hunter is still hungry {}/{}".format(self.hunter.curr_hunger, self.hunter.max_hunger))
-                if self.static_entity.num_berries > 0:
-                    self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
-                else:
-                    self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit)))
-            else:
-                self.hunter.recent_actions.append("Hunter is full!")
+        if self.hunter.attacked:
+            flog.debug("skipping PickAndEatAction due to being attacked")
         else:
-            for action in self.hunter.ai.roam():
-                self.hunter.ai.action_queue.append(action)
+            flog.debug("hunter is picking and eating")
+            self.hunter.recent_actions.append("Hunter is picking and eating a berry.")
+
+            berry = self.static_entity.pick_berry()
+
+            if berry != None:
+                self.hunter.eat(berry)
+                
+                if self.hunter.is_still_hungry():
+                    flog.debug("hunter is still hungry {}/{}".format(self.hunter.curr_hunger, self.hunter.max_hunger))
+                    if self.static_entity.num_berries > 0:
+                        self.hunter.ai.action_queue.append(PickAndEatAction(self.hunter, self.static_entity))
+                    else:
+                        self.hunter.ai.action_queue.append(SearchAreaAction(self.hunter, (bb.BerryBush, rbt.Rabbit)))
+                else:
+                    self.hunter.recent_actions.append("Hunter is full!")
+            else:
+                for action in self.hunter.ai.roam():
+                    self.hunter.ai.action_queue.append(action)
 
 
 # TODO refactor EatRabbitAction and PickAndEatAction
@@ -357,8 +378,11 @@ class EatRabbitAction():
         self.rabbit = rabbit
 
     def perform(self):
-        self.hunter.recent_actions.append("Hunter ate a rabbit!")
-        self.hunter.eat(self.rabbit)
+        if self.hunter.attacked:
+            flog.debug("skipping EatRabbitAction due to being attacked")
+        else:
+            self.hunter.recent_actions.append("Hunter ate a rabbit!")
+            self.hunter.eat(self.rabbit)
 
 
 class SleepAction():
@@ -369,10 +393,7 @@ class SleepAction():
 
     def perform(self):
         if (self.hunter.curr_energy >= (self.hunter.max_energy - stats.Stats.map()["hunter"]["energy-loss"]) and self.hunter.engine.time_of_day != tod.NIGHT) or self.hunter.should_wake_up():
-            # wake up
-            self.hunter.recent_actions.append("Hunter woke up.")
-            self.hunter.asleep = False
-            self.hunter.bed = None
+            self.hunter.wake_up()
             # grab a brush and put a little makeup
 
             if self.bed != None:
@@ -391,6 +412,39 @@ class SleepAction():
             self.hunter.curr_health += stats.Stats.map()["hunter"]["sleep-health-gain"] if not self.bed == None else stats.Stats.map()["ground"]["sleep-health-gain"]
 
             self.hunter.ai.action_queue.append(SleepAction(self.hunter, self.bed))
+
+
+class PursueAction():
+    def __init__(self, hunter, target):
+        self.hunter = hunter
+        self.target = target
+
+    def perform(self):
+        flog.debug("hunter is pursuing")
+        if self.hunter.alive:
+            dy, dx = pf.path_to_target(self.hunter, self.target)
+            self.hunter.move(dx, dy)
+
+            if self.target.alive:
+                if self.hunter.is_target_in_range(self.target):
+                    self.hunter.ai.action_queue.append(AttackAction(self.hunter, self.target))
+                else:
+                    self.hunter.ai.action_queue.append(PursueAction(self.hunter, self.target))
+
+
+class AttackAction():
+    def __init__(self, hunter, target):
+        self.hunter = hunter
+        self.target = target
+
+    def perform(self):
+        flog.debug("hunter is attacking")
+        self.hunter.recent_actions.append("Hunter attacked a wolf.")
+        self.target.harm(self.hunter.attk_dmg)
+
+        if not self.target.alive:
+            self.hunter.recent_actions.append("Hunter killed a wolf!")
+            self.hunter.attacked = False
 
 
 class ShootBowAction():

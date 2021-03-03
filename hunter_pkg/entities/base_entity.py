@@ -124,6 +124,9 @@ class IntelligentEntity(Entity):
     def is_affected_by(self, status_effect_class):
         return any(isinstance(se, status_effect_class) for se in self.status_effects)
 
+    def is_target_in_range(self, target):
+        return self.x == target.x and self.y == target.y
+
 
 class StaticEntity():
     def __init__(self, engine, x, y, update_interval):

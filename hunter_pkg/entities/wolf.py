@@ -35,9 +35,6 @@ class Wolf(base_entity.IntelligentEntity):
 
     def is_hungry(self):
         return True
-    
-    def is_target_in_range(self, target):
-        return self.x == target.x and self.y == target.y
 
     def die(self):
         flog.debug("a wolf died")
@@ -54,13 +51,14 @@ class WolfAI():
         self.action_queue = deque()
 
     def perform(self):
-        if len(self.action_queue) > 0:
-            action = self.action_queue.popleft()
-            action.perform()
-        else:
-            actions = self.decide_what_to_do()
-            for a in actions:
-                self.action_queue.append(a)
+        if self.wolf.alive:
+            if len(self.action_queue) > 0:
+                action = self.action_queue.popleft()
+                action.perform()
+            else:
+                actions = self.decide_what_to_do()
+                for a in actions:
+                    self.action_queue.append(a)
 
     def decide_what_to_do(self):
         actions = []
