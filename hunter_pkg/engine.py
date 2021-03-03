@@ -44,6 +44,7 @@ class Engine:
         self.hovered_tile = None
         self.settings = stats.Stats.map()["settings"]
         self.time_of_day = tod.MORNING # init this to morning for now
+        self.days_elapsed = 1
 
     def handle_inputs(self, inputs: Iterable[Any]) -> None:
         for input in inputs:
@@ -73,6 +74,8 @@ class Engine:
 
         if math.get_decimal(new_time) >= stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
+            self.days_elapsed += 1
+
             if self.hunter.alive:
                 self.hunter.days_survived += 1
 

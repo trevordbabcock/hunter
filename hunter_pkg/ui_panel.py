@@ -79,6 +79,7 @@ class StatsPanel(UIPanel):
 
         lines = [
             self.get_header_footer_line(self.width),
+            self.center_line(self.width, f"Day {self.engine.days_elapsed}"),
             self.center_line(self.width, self.engine.time_of_day.capitalize()),
             self.center_line(self.width, f"{self.format_game_time(self.engine.game_time)}"),
             "",
