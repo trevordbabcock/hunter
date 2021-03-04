@@ -81,6 +81,8 @@
         "attack-damage": 12,
         "max-path-distance": 12,
         "roam-candidates": 3,
+        "bandage-threshold": 25,
+        "bandage-heal-amount": 5,
         "camp": {
             "x-spawn": 49,
             "y-spawn": 10

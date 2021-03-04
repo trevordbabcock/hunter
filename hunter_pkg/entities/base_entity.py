@@ -62,6 +62,9 @@ class IntelligentEntity(Entity):
     def harm(self, damage):
         self.curr_health -= damage
 
+    def heal(self, healing):
+        self.curr_health += healing
+
     def die(self):
         raise NotImplementedError
 

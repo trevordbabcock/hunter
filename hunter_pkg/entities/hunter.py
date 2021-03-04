@@ -44,6 +44,8 @@ class Hunter(base_entity.IntelligentEntity):
         self.curr_energy = stats.Stats.map()["hunter"]["starting-energy"]
         self.vision_distance = stats.Stats.map()["hunter"]["vision-distance"]
         self.attk_dmg = stats.Stats.map()["hunter"]["attack-damage"]
+        self.bandage_threshold = stats.Stats.map()["hunter"]["bandage-threshold"]
+        self.bandage_heal_amount = stats.Stats.map()["hunter"]["bandage-heal-amount"]
         self.memory = HunterMemory()
         self.recent_actions = []
         self.max_recent_actions = 100
@@ -83,6 +85,10 @@ class Hunter(base_entity.IntelligentEntity):
     
     def is_attacked(self):
         return self.attacked
+
+    def should_bandage(self):
+        # TODO change; it's weird to only prevent bandaging when starving
+        return self.curr_health <= self.bandage_threshold and not self.is_affected_by(stfx.Starvation)
 
     def should_wake_up(self):
         if self.attacked:
@@ -200,6 +206,10 @@ class HunterAI():
         #             break
         if self.hunter.is_attacked():
             actions.append(SearchAreaAction(self.hunter, [wlf.Wolf]))
+        elif self.hunter.should_bandage():
+            flog.debug("hunter is WOUNDED")
+            self.hunter.recent_actions.append("Hunter is wounded!")
+            actions.append(BandageAction(self.hunter))
         elif self.hunter.is_hungry():
             flog.debug("hunter is HUNGRY")
             self.hunter.recent_actions.append("Hunter is hungry!")
@@ -464,4 +474,12 @@ class ShootBowAction():
             self.hunter.ai.action_queue.append(EatRabbitAction(self.hunter, self.target))
         else:
             self.hunter.recent_actions.append("Hunter shot the bow and missed!")
-        
+
+
+class BandageAction():
+    def __init__(self, hunter):
+        self.hunter = hunter
+
+    def perform(self):
+        self.hunter.recent_actions.append("Hunter bandaged.")
+        self.hunter.heal(self.hunter.bandage_heal_amount)
