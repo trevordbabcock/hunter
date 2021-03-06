@@ -1,7 +1,7 @@
 settings:
-    #seed: 1234
-    game-speed: 2
-    show-fog: false
+    #seed: 1615070703
+    game-speed: 5
+    show-fog: true
     show-ui: true
     game-time:
         initial: 0.06
@@ -17,12 +17,12 @@ settings:
             evening: 0.17
             night: 0.2
 berry-bush:
-    spawn: 0.018
+    spawn: 0.020
     update-interval: 800
     spawn-min-berries: 5
     spawn-max-berries: 10
     grow-min-berries: 1
-    grow-max-berries: 1
+    grow-max-berries: 2
     min-berry-limit: 12
     max-berry-limit: 20
 berry:
@@ -54,13 +54,13 @@ hunter:
     starting-hunger: 30
     starting-health: 50
     starting-energy: 50
-    hunger-loss: 0.25
-    energy-loss: 0.3
+    hunger-loss: 0.18
+    energy-loss: 0.25
     sleep-health-gain: 0.25
     starvation-health-loss: 0.5
     sleep-deprivation-health-loss: 0.1
     sleep-deprivation-chance-to-pass-out: 0.07
-    hunger-threshold-low: 35
+    hunger-threshold-low: 25
     hunger-threshold-high: 50
     tired-threshold: 15
     update-interval-start: 0.001
@@ -84,7 +84,7 @@ rabbit:
     update-interval-step: 0.0001
     max-health: 5
     starting-health: 5
-    nutritional-value: 17
+    nutritional-value: 25
     roam-distance: 3
     vision-distance:
         morning: 1
@@ -92,7 +92,7 @@ rabbit:
         evening: 1
         night: 1
 wolf:
-    spawn: 0.0002
+    spawn: 0.00027
     update-interval-start: 0.001
     update-interval-end: 0.0015
     update-interval-step: 0.0001

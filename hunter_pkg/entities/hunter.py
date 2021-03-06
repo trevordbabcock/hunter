@@ -30,7 +30,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.light_gray(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
+        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
         self.name = self.get_name()
         self.alive = True
         self.asleep = False
@@ -50,7 +50,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.recent_actions = []
         self.max_recent_actions = 100
         self.min_recent_actions = 30
-        self.days_survived = 0
+        self.days_survived = 1
         self.rt_spawn_time = time()
         self.bow = bw.Bow()
         self.bed = None

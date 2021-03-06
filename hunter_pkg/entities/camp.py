@@ -10,7 +10,7 @@ class Camp:
         self.y = y
         self.char = ord("C")
         self.fg_color = colors.white()
-        self.bg_color = colors.light_gray()
+        self.bg_color = colors.safe_blue()
         self.components = [FirePit(engine), Bedroll(), WoodPile()]
 
 

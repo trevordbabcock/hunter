@@ -74,13 +74,23 @@ Run the game:
   * ~~**v0.6** - add hunter sleep, add hunter camp, track hunter stats, fog of war toggle,add hunter bow and arrow, add rabbit hunting~~
   * ~~**v0.7** - revise hunger/health/energy system, improve rabbit behavior, improve hunter ai~~
   * ~~**v0.8** - include procedural map generation, increase map size, improve game balance~~
-  * **v0.9** - add wolves, hunter vs wolf combat
-* **v1 - improve ecosystem**
-  * **v1.1** - add another creature 1
-  * **v1.2** - add another creature 2
-  * **v1.3** - add point of interest 1
-  * **v1.4** - add point of interest 2
-* **v2 - prototype map size scaling**
-  * **v2.1** - add save functionality
-  * **v2.2** - add ability to pan camera
-* **v3 - improve graphics?**
+  * ~~**v0.9** - add wolves, hunter vs wolf combat~~
+* **v1** - playability, ui, and technical improvements
+  - make hunter highlightable
+  - make creatures hideable
+  - show game controls on screen
+  - make entities selectable
+    - show stats for selected unit
+    - make entities selectable and display action log just for that entity
+  - fix hunter find-and-search-eat-berry duplication bug
+    - add ellipses for duplicate messages
+  - change action system so that different actions can have different cooldowns
+* **v2 - improve ecosystem**
+  * **v2.1** - add another creature 1
+  * **v2.2** - add another creature 2
+  * **v2.3** - add point of interest 1
+  * **v2.4** - add point of interest 2
+* **v3 - prototype map size scaling**
+  * **v3.1** - add save functionality
+  * **v4.2** - add ability to pan camera
+* **v4 - improve graphics?**

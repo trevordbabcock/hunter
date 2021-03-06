@@ -1,0 +1,3 @@
+default: INFO
+overrides: {}
+  #hunter.py: DEBUG

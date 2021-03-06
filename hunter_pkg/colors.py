@@ -1,10 +1,18 @@
 
+def hunter_green():
+    return (13,143,50)
+
 def black():
     return (20,20,20)
 
 def light_gray():
     return (75,75,75)
 
+def brown():
+    return (89,46,12)
+
+def safe_blue():
+    return (15, 65, 150)
 
 def dark_gray(time_of_day=None):
     if time_of_day == None:

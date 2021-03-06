@@ -32,8 +32,9 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Engine:
     def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
-        self.game_speed = stats.Stats.map()["settings"]["game-speed"]
-        self.game_time = stats.Stats.map()["settings"]["game-time"]["initial"]
+        self.settings = stats.Stats.map()["settings"]
+        self.game_speed = self.settings["game-speed"]
+        self.game_time = self.settings["game-time"]["initial"]
         self.intelligent_entities = intelligent_entities
         self.static_entities = static_entities
         self.input_handler = input_handler
@@ -42,7 +43,6 @@ class Engine:
         self.hunter = None
         self.camp = None
         self.hovered_tile = None
-        self.settings = stats.Stats.map()["settings"]
         self.time_of_day = tod.MORNING # init this to morning for now
         self.days_elapsed = 1
 
@@ -64,7 +64,7 @@ class Engine:
     def advance_game_time(self):
         prev_time = self.game_time
         prev_time_of_day = self.get_time_of_day(prev_time)
-        factor = stats.Stats.map()["settings"]["game-time"]["factors"][prev_time_of_day]
+        factor = self.settings["game-time"]["factors"][prev_time_of_day]
         new_time = self.game_time + (factor * self.game_speed)
         new_time_of_day = self.time_of_day = self.get_time_of_day(new_time)
 
@@ -72,7 +72,7 @@ class Engine:
             flog.debug(f"it's now {new_time_of_day}")
             self.game_map.redraw_all_transition()
 
-        if math.get_decimal(new_time) >= stats.Stats.map()["settings"]["game-time"]["thresholds"]["max"]:
+        if math.get_decimal(new_time) >= self.settings["game-time"]["thresholds"]["max"]:
             flog.debug("it's a new day!")
             self.days_elapsed += 1
 
@@ -84,13 +84,13 @@ class Engine:
     def get_time_of_day(self, full_time):
         day_time = full_time - floor(full_time)
 
-        if day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["night"]:
+        if day_time > self.settings["game-time"]["thresholds"]["night"]:
             return tod.NIGHT
-        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["evening"]:
+        elif day_time > self.settings["game-time"]["thresholds"]["evening"]:
             return tod.EVENING
-        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["afternoon"]:
+        elif day_time > self.settings["game-time"]["thresholds"]["afternoon"]:
             return tod.AFTERNOON
-        elif day_time > stats.Stats.map()["settings"]["game-time"]["thresholds"]["morning"]:
+        elif day_time > self.settings["game-time"]["thresholds"]["morning"]:
             return tod.MORNING
         else:
             return tod.NIGHT

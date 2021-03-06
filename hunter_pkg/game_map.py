@@ -65,7 +65,6 @@ class GameMap:
                 self.tiles[y].append(Tile(self, terrain_map[row[x].strip()], x, y))
                 self.path_map[y].append(1 if self.tiles[y][x].terrain.walkable else 0)
 
-
     def in_bounds(self, x, y):
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height

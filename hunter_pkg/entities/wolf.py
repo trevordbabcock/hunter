@@ -23,7 +23,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Wolf(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "W", colors.white(), colors.light_gray(), WolfAI(self), [stats.Stats.map()["wolf"]["update-interval-start"], stats.Stats.map()["wolf"]["update-interval-end"]], stats.Stats.map()["wolf"]["update-interval-step"])
+        super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), [stats.Stats.map()["wolf"]["update-interval-start"], stats.Stats.map()["wolf"]["update-interval-end"]], stats.Stats.map()["wolf"]["update-interval-step"])
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["wolf"]["max-health"]
@@ -112,6 +112,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         else:
             self.wolf.ai.roam()
 
+
 class PursueAction():
     def __init__(self, wolf, target):
         self.wolf = wolf
@@ -127,6 +128,7 @@ class PursueAction():
                 self.wolf.ai.action_queue.append(AttackAction(self.wolf, self.target))
             else:
                 self.wolf.ai.action_queue.append(PursueAction(self.wolf, self.target))
+
 
 class AttackAction():
     def __init__(self, wolf, target):

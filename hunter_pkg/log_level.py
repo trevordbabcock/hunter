@@ -1,8 +1,8 @@
-import json
+import yaml
 from os.path import basename
 
 
-config_file = "hunter_pkg/config/log_level.json"
+config_file = "hunter_pkg/config/log_level.yaml"
 
 class LogLevel():
     _map = None
@@ -11,7 +11,7 @@ class LogLevel():
     def map(cls):
         if(cls._map is None):
             with open(config_file) as file:
-                cls._map = json.load(file)
+                cls._map = yaml.safe_load(file)
                 return cls._map
 
         return cls._map
