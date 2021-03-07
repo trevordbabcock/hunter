@@ -78,12 +78,16 @@ Run the game:
   * ~~**v0.8** - include procedural map generation, increase map size, improve game balance~~
   * ~~**v1.0** - add wolves, hunter vs wolf combat~~
 * **v1.1** - playability, ui, and technical improvements
+  - add abilty to pause
   - make hunter highlightable
   - make creatures hideable
   - show game controls on screen
   - make entities selectable
     - show stats for selected unit
     - make entities selectable and display action log just for that entity
+    - allow selection while paused
+    - when clicking on a cell with multiple entities, each click should select the next entity on that cell
+    - the selected entity should be bolded in the cell entity list
   - fix hunter find-and-search-eat-berry duplication bug
     - add ellipses for duplicate messages
   - change action system so that different actions can have different cooldowns
