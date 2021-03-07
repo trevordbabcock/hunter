@@ -59,6 +59,8 @@ cd hunter
 pip install -r requirements.txt
 ```
 
+Install Ruby 2.7.0 or higher (temporary step; will remove this requirement this soon).
+
 Run the game:
 ```
 ./hunter_pkg/main.py
@@ -74,8 +76,8 @@ Run the game:
   * ~~**v0.6** - add hunter sleep, add hunter camp, track hunter stats, fog of war toggle,add hunter bow and arrow, add rabbit hunting~~
   * ~~**v0.7** - revise hunger/health/energy system, improve rabbit behavior, improve hunter ai~~
   * ~~**v0.8** - include procedural map generation, increase map size, improve game balance~~
-  * ~~**v0.9** - add wolves, hunter vs wolf combat~~
-* **v1** - playability, ui, and technical improvements
+  * ~~**v1.0** - add wolves, hunter vs wolf combat~~
+* **v1.1** - playability, ui, and technical improvements
   - make hunter highlightable
   - make creatures hideable
   - show game controls on screen
