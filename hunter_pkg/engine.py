@@ -24,7 +24,7 @@ from hunter_pkg import input_handlers
 from hunter_pkg import log_level
 from hunter_pkg import stats
 from hunter_pkg import terrain
-from hunter_pkg import ui_panel
+from hunter_pkg import ui_panel as ui
 from hunter_pkg import vision_map as vsmap
 
 
@@ -43,6 +43,7 @@ class Engine:
         self.hunter = None
         self.camp = None
         self.hovered_tile = None
+        self.hovered_ui_element = None
         self.time_of_day = tod.MORNING # init this to morning for now
         self.days_elapsed = 1
 
@@ -137,15 +138,26 @@ class Engine:
 
         return intelligent_entities, static_entities
 
+    def init_ui_collision_layer(self):
+        self.ui_collision_layer = ui.UICollisionLayer(self.game_map.height, self.game_map.width)
+
     def init_stats_panel(self):
         margin = 2
-        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=self.game_map.height - margin, width=17, engine=self)
+        self.stats_panel = ui.StatsPanel(x=1, y=1, height=self.game_map.height - margin, width=17, engine=self)
 
     def init_action_log_panel(self):
         x = 20
         height = 13
         margin = 2
-        self.action_log_panel = ui_panel.ActionLogPanel(x=x, y=self.game_map.height - height - 1, height=height, width=self.game_map.width - x - margin, engine=self)
+        self.action_log_panel = ui.ActionLogPanel(x=x, y=self.game_map.height - height - 1, height=height, width=self.game_map.width - x - margin, engine=self)
+
+    def init_game_menu_panel(self):
+        height = 27
+        width = 29
+        y_offset = -3
+        x = round((self.game_map.width / 2) - (width / 2))
+        y = round((self.game_map.height / 2) - (height / 2)) + y_offset
+        self.game_menu_panel = ui.GameMenuPanel(x=x, y=y, height=height, width=width, engine=self)
 
     # TODO dedup this (duplicated in hunter.py)
     def init_fog_reveal(self):
@@ -199,5 +211,6 @@ class Engine:
         if self.settings["show-ui"]:
             self.stats_panel.render(console)
             self.action_log_panel.render(console)
+            self.game_menu_panel.render(console)
 
         context.present(console)

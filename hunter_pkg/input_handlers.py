@@ -42,3 +42,6 @@ class InputHandler(tcod.event.EventDispatch[pact.PlayerAction]):
         y = input.pixel[1]
 
         return pact.MouseMovementPlayerAction(x, y)
+
+    def ev_mousebuttonup(self, input: tcod.event.MouseButtonUp):
+        return pact.MouseUpPlayerAction()

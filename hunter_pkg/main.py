@@ -66,8 +66,10 @@ def main() -> None:
     engine.camp = camp
     engine.intelligent_entities.append(hunter)
 
+    engine.init_ui_collision_layer()
     engine.init_stats_panel()
     engine.init_action_log_panel()
+    engine.init_game_menu_panel()
     engine.init_fog_reveal()
 
     engine.init_event_queue(engine.intelligent_entities)

@@ -5,6 +5,7 @@ from math import floor
 from hunter_pkg import flogging
 from hunter_pkg import log_level
 from hunter_pkg import pathfinder
+from hunter_pkg import ui_panel as ui
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
@@ -16,7 +17,16 @@ class PlayerAction:
 
 class EscapePlayerAction(PlayerAction):
     def perform(self, engine):
-        raise SystemExit()
+        panel = engine.game_menu_panel
+        panel.hidden = not panel.hidden
+
+        if panel.hidden:
+            x1 = panel.x - 1
+            y1 = panel.y - 1
+            x2 = panel.x + panel.width - 1
+            y2 = panel.y + panel.height - 1
+            engine.game_map.redraw_tiles([x1, y1], [x2, y2])
+            engine.ui_collision_layer.delete_all_hitboxes()
 
 
 class MouseMovementPlayerAction(PlayerAction):
@@ -37,6 +47,19 @@ class MouseMovementPlayerAction(PlayerAction):
             engine.game_map.redraw_tile(curr_tile.x, curr_tile.y)
             engine.hovered_tile = curr_tile
             engine.stats_panel.tile = curr_tile
+
+        hovered_element = engine.ui_collision_layer.tiles[self.y][self.x]
+        if hovered_element != None:
+            flog.debug(f"hit {hovered_element} on ({self.x},{self.y})")
+            engine.hovered_ui_element = hovered_element
+        else:
+            engine.hovered_ui_element = None
+
+
+class MouseUpPlayerAction(PlayerAction):
+    def perform(self, engine):
+        if engine.hovered_ui_element and isinstance(engine.hovered_ui_element, ui.UIButton) and engine.hovered_ui_element.id == "exit_btn":
+            raise SystemExit
 
 
 class ToggleVisionPlayerAction(PlayerAction):
