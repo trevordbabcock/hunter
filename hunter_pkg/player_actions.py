@@ -5,7 +5,10 @@ from math import floor
 from hunter_pkg import flogging
 from hunter_pkg import log_level
 from hunter_pkg import pathfinder
-from hunter_pkg import ui_panel as ui
+
+from hunter_pkg.helpers import coord
+
+from hunter_pkg.ui import element as ui_elem
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
@@ -17,16 +20,12 @@ class PlayerAction:
 
 class EscapePlayerAction(PlayerAction):
     def perform(self, engine):
-        panel = engine.game_menu_panel
-        panel.hidden = not panel.hidden
-
-        if panel.hidden:
-            x1 = panel.x - 1
-            y1 = panel.y - 1
-            x2 = panel.x + panel.width - 1
-            y2 = panel.y + panel.height - 1
-            engine.game_map.redraw_tiles([x1, y1], [x2, y2])
-            engine.ui_collision_layer.delete_all_hitboxes()
+        if not engine.controls_panel.hidden:
+            engine.controls_panel.hide()
+        elif engine.game_menu_panel.hidden:
+            engine.game_menu_panel.show()
+        else:
+            engine.game_menu_panel.hide()
 
 
 class MouseMovementPlayerAction(PlayerAction):
@@ -58,8 +57,14 @@ class MouseMovementPlayerAction(PlayerAction):
 
 class MouseUpPlayerAction(PlayerAction):
     def perform(self, engine):
-        if engine.hovered_ui_element and isinstance(engine.hovered_ui_element, ui.UIButton) and engine.hovered_ui_element.id == "exit_btn":
-            raise SystemExit
+        if engine.hovered_ui_element and isinstance(engine.hovered_ui_element, ui_elem.Button):
+            if engine.hovered_ui_element.id == "exit_btn":
+                raise SystemExit
+            elif engine.hovered_ui_element.id == "open_ctrls_btn":
+                engine.game_menu_panel.hide()
+                engine.controls_panel.show()
+            elif engine.hovered_ui_element.id == "close_ctrls_btn":
+                engine.controls_panel.hide()
 
 
 class ToggleVisionPlayerAction(PlayerAction):

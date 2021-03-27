@@ -80,9 +80,9 @@ class GameMap:
     def redraw_tile(self, x, y):
         self.redraw_matrix[y, x] = True
 
-    def redraw_tiles(self, xy1, xy2):
-        for y in range(xy1[1], xy2[1] + 1):
-            for x in range(xy1[0], xy2[0] + 1):
+    def redraw_tiles(self, top_left_coord, bottom_right_coord):
+        for y in range(top_left_coord.y, bottom_right_coord.y + 1):
+            for x in range(top_left_coord.x, bottom_right_coord.x + 1):
                 self.redraw_matrix[y, x] = True
 
     def redraw_reset(self):

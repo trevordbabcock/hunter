@@ -70,6 +70,7 @@ def main() -> None:
     engine.init_stats_panel()
     engine.init_action_log_panel()
     engine.init_game_menu_panel()
+    engine.init_controls_panel()
     engine.init_fog_reveal()
 
     engine.init_event_queue(engine.intelligent_entities)
