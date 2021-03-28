@@ -80,4 +80,9 @@ class ToggleUIPlayerAction(PlayerAction):
     def perform(self, engine):
         engine.settings["show-ui"] = not engine.settings["show-ui"]
         engine.game_map.redraw_all()
+
+
+class TogglePausePlayerAction(PlayerAction):
+    def perform(self, engine):
+        engine.paused = not engine.paused
         

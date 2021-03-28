@@ -36,6 +36,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 class Engine:
     def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
         self.settings = stats.Stats.map()["settings"]
+        self.paused = False
         self.game_speed = self.settings["game-speed"]
         self.game_time = self.settings["game-time"]["initial"]
         self.intelligent_entities = intelligent_entities

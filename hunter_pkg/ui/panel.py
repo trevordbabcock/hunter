@@ -259,12 +259,13 @@ class ControlsPanel(Panel):
             elements = [
                 ui_elem.HeaderFooter(self.width),
                 ui_elem.Break(3),
-                "  Esc: show escape menu",
-                "    F: show/hide fog of war",
-                "    H: show/hide ",
+                "   Esc: show escape menu",
+                "     F: show/hide fog of war",
+                "     H: show/hide ",
+                " Spc/P: pause game",
                 ui_elem.Break(3),
                 ui_elem.Button("close_ctrls_btn", "Close", 13, self.width, self.engine),
-                ui_elem.Break(3),
+                ui_elem.Break(2),
                 ui_elem.HeaderFooter(self.width)
             ]
 

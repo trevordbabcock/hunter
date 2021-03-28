@@ -90,8 +90,11 @@ def main() -> None:
             
             inputs = tcod.event.get()
             engine.handle_inputs(inputs)
-            engine.advance_game_time()
-            engine.process_events()
+
+            if not engine.paused:
+                engine.advance_game_time()
+                engine.process_events()
+
             engine.render(console=root_console, context=context)
             
             # if n == 100:

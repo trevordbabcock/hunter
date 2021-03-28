@@ -32,6 +32,8 @@ class InputHandler(tcod.event.EventDispatch[pact.PlayerAction]):
             player_action = pact.ToggleUIPlayerAction()
         elif key == tcod.event.K_f:
             player_action = pact.ToggleVisionPlayerAction()
+        elif key == tcod.event.K_p or key == tcod.event.K_SPACE:
+            player_action = pact.TogglePausePlayerAction()
         elif key == tcod.event.K_ESCAPE:
             player_action = pact.EscapePlayerAction()
 
