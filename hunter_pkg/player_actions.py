@@ -20,12 +20,16 @@ class PlayerAction:
 
 class EscapePlayerAction(PlayerAction):
     def perform(self, engine):
-        if not engine.controls_panel.hidden:
-            engine.controls_panel.hide()
-        elif engine.game_menu_panel.hidden:
-            engine.game_menu_panel.show()
+        if engine.settings["show-ui"]:
+            if not engine.controls_panel.hidden:
+                engine.controls_panel.hide()
+            elif engine.game_menu_panel.hidden:
+                engine.game_menu_panel.show()
+            else:
+                engine.game_menu_panel.hide()
         else:
-            engine.game_menu_panel.hide()
+            engine.settings["show-ui"] = True
+            engine.game_map.redraw_all()
 
 
 class MouseMovementPlayerAction(PlayerAction):
@@ -65,6 +69,8 @@ class MouseUpPlayerAction(PlayerAction):
                 engine.controls_panel.show()
             elif engine.hovered_ui_element.id == "close_ctrls_btn":
                 engine.controls_panel.hide()
+        elif engine.hovered_tile:
+            engine.hovered_tile.select_next_entity(engine)
 
 
 class ToggleVisionPlayerAction(PlayerAction):

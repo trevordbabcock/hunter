@@ -18,8 +18,11 @@ class Entity:
         self.y = y
         self.char = char
         self.color = color
+        self.base_color = color
         self.bg_color = bg_color
+        self.base_bg_color = bg_color
         self.engine = engine
+        self.selected = False
 
     def move(self, dx, dy):
         dest_x = self.x + dx
@@ -35,6 +38,17 @@ class Entity:
 
         self.x += dx
         self.y += dy
+
+    def select(self):
+        self.selected = True
+        self.color = colors.dark_gray()
+        self.bg_color = colors.yellow()
+
+    def deselect(self):
+        self.selected = False
+        self.color = self.base_color
+        self.bg_color = self.base_bg_color
+
 
 
 class IntelligentEntity(Entity):

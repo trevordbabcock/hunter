@@ -14,6 +14,10 @@ def brown():
 def safe_blue():
     return (15, 65, 150)
 
+def yellow():
+    return (255, 213, 0)
+
+
 def dark_gray(time_of_day=None):
     if time_of_day == None:
         return dark_gray_morning()

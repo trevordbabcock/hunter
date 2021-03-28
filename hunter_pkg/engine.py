@@ -48,6 +48,7 @@ class Engine:
         self.camp = None
         self.hovered_tile = None
         self.hovered_ui_element = None
+        self.selected_entity = None
         self.time_of_day = tod.MORNING # init this to morning for now
         self.days_elapsed = 1
 

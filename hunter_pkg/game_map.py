@@ -6,9 +6,15 @@ from tcod.console import Console
 from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import camp as cp
 
+from hunter_pkg.helpers import generic as gen
+
 from hunter_pkg import colors
+from hunter_pkg import flogging
+from hunter_pkg import log_level
 from hunter_pkg import terrain
 
+
+flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 terrain_map = {
     "G": terrain.Grass(),
@@ -158,6 +164,43 @@ class Tile:
             self.entities.remove(e)
 
         self.redraw()
+
+    # TODO should probably be moved off of Tile
+    def select_next_entity(self, engine):
+        if len(self.entities) > 0:
+            current_index = None
+
+            for i in range(len(self.entities)):
+                if self.entities[i] == engine.selected_entity:
+                    current_index = i
+                    break
+
+            if current_index == None:
+                next_index = 0
+            else:
+                next_index = current_index + 1
+
+            if next_index >= len(self.entities):
+                next_index = 0
+            
+            if gen.has_method(engine.selected_entity, "deselect"):
+                engine.selected_entity.deselect()
+
+            engine.selected_entity = None
+            flog.debug("deselected")
+
+            engine.selected_entity = self.entities[next_index]
+
+            if gen.has_method(engine.selected_entity, "select"):
+                engine.selected_entity.select()
+
+            flog.debug(f"{engine.selected_entity.__class__} is selected")
+        else:
+            if gen.has_method(engine.selected_entity, "deselect"):
+                engine.selected_entity.deselect()
+
+            engine.selected_entity = None
+            flog.debug("deselected")
 
     def reveal(self):
         self.explored = True
