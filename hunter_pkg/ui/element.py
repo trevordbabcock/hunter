@@ -24,6 +24,28 @@ class WindowTextLine():
         console.print(x, y, border + self.text + border, self.color)
 
 
+# class Section():
+#     def __init__(self, height, elements):
+#         self.height = height
+#         self.elements = elements
+    
+#     def shorten_content(self, elements):
+#         self.elements = elements[0:self.height-1]
+
+#     def render(self):
+#         content_height = 0
+
+#         for e in elements:
+#             if isinstance(e, Break):
+#                 content_height = content_height + e.num
+#             else:
+#                 content_height += 1
+        
+#         render_elements = shorten_elements(self.elements)
+
+#         for e in render_elements:
+#             e.render
+
 class HeaderFooter():
     def __init__(self, width):
         self.width = width
@@ -40,6 +62,14 @@ class HeaderFooter():
         return "".join(chars)
 
 
+class Divider():
+    def __init__(self, width):
+        self.width = width
+
+    def render(self):
+        return "-" * self.width
+
+
 class Break():
     def __init__(self, num=1):
         self.num = num
@@ -51,6 +81,15 @@ class Break():
             lines.append("")
 
         return lines
+
+
+class PaddedText():
+    def __init__(self, text, amount):
+        self.text = text
+        self.amount = amount
+    
+    def render(self):
+        return (" " * self.amount) + self.text
 
 
 class Button():

@@ -148,7 +148,13 @@ class Engine:
 
     def init_stats_panel(self):
         margin = 2
-        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=self.game_map.height - margin, width=17, engine=self)
+        self.stats_panel = ui_panel.StatsPanel(x=1, y=1, height=16, width=17, engine=self)
+
+    def init_hover_panel(self):
+        self.hover_panel = ui_panel.HoverPanel(x=1, y=17, height=20, width=17, engine=self)
+
+    def init_selection_panel(self):
+        self.selection_panel = ui_panel.SelectionPanel(x=1, y=37, height=37, width=17, engine=self)
 
     def init_action_log_panel(self):
         x = 20
@@ -223,6 +229,8 @@ class Engine:
 
         if self.settings["show-ui"]:
             self.stats_panel.render(console)
+            self.hover_panel.render(console)
+            self.selection_panel.render(console)
             self.action_log_panel.render(console)
             self.game_menu_panel.render(console)
             self.controls_panel.render(console)

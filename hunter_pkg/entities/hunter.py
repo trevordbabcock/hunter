@@ -30,7 +30,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"])
+        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"], "Hunter")
         self.name = self.get_name()
         self.alive = True
         self.asleep = False
@@ -170,6 +170,28 @@ class Hunter(base_entity.IntelligentEntity):
         flog.debug(f"time alive: {rt_time_alive}")
 
         return rt_time_alive
+
+    def selection_info(self):
+        info = [
+            self.name,
+            "The Hunter"
+        ]
+
+        if not self.alive:
+            info.append("*Dead*")
+
+        info.extend([
+            f"Coord: ({self.x},{self.y})",
+            {
+                "Inventory": [
+                    "Dagger",
+                    "Bow",
+                    "Arrows",
+                ],
+            }
+        ])
+
+        return info
 
 
 class HunterAI():

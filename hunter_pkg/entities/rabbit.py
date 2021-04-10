@@ -21,7 +21,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Rabbit(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), RabbitAI(self), [stats.Stats.map()["rabbit"]["update-interval-start"], stats.Stats.map()["rabbit"]["update-interval-end"]], stats.Stats.map()["rabbit"]["update-interval-step"])
+        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), RabbitAI(self), [stats.Stats.map()["rabbit"]["update-interval-start"], stats.Stats.map()["rabbit"]["update-interval-end"]], stats.Stats.map()["rabbit"]["update-interval-step"], "Rabbit")
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["rabbit"]["max-health"]
@@ -65,6 +65,22 @@ class Rabbit(base_entity.IntelligentEntity):
 
     def progress(self):
         pass
+
+    def selection_info(self):
+        info = [self.name]
+
+        if not self.alive:
+            info.append("*Dead*")
+        
+        info.extend([
+            f"Coord: ({self.x},{self.y})",
+            f"Hlth: {self.curr_health}/{self.max_health}",
+        ])
+
+        if self.burrow != None:
+            info.append(f"Brrw: ({self.burrow.x},{self.burrow.y})")
+
+        return info
 
 
 class RabbitAI():

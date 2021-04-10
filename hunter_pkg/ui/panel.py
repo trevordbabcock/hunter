@@ -104,7 +104,6 @@ class Panel():
 class StatsPanel(Panel):
     def __init__(self, x, y, height, width, engine):
         super().__init__(x, y, height, width, engine)
-        self.tile = None
 
     def format_game_time(self, game_time):
         """
@@ -121,64 +120,142 @@ class StatsPanel(Panel):
     def render(self, console):
         console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
-        lines = [
-            self.get_header_footer_line(self.width),
+        elements = [
+            ui_elem.HeaderFooter(self.width),
             self.center_line(self.width, f"Day {self.engine.days_elapsed}"),
             self.center_line(self.width, self.engine.time_of_day.capitalize()),
             self.center_line(self.width, f"{self.format_game_time(self.engine.game_time)}"),
-            "",
+            ui_elem.Break(),
             f"{self.engine.hunter.name}",
             "The Hunter",
-            "",
+            ui_elem.Break(),
             f"Surv {self.engine.hunter.days_survived} days",
-            ""
+            ui_elem.Break(),
             "Hlth {:02.0f}/{}".format(self.engine.hunter.curr_health, self.engine.hunter.max_health),
             "Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger),
             "Nrgy {:02.0f}/{}".format(self.engine.hunter.curr_energy, self.engine.hunter.max_energy),
-        ]        
+            ui_elem.Break(),
+            ui_elem.Divider(self.width),
+            ui_elem.Divider(self.width),
+        ]
+        
+        lines = self.render_elements(elements)
+        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
 
-        for i in range(12):
-            lines.append("")
 
-        lines.append(self.get_divider_line(self.width))
-        lines.append(self.get_divider_line(self.width))
+class HoverPanel(Panel):
+    def __init__(self, x, y, height, width, engine):
+        super().__init__(x, y, height, width, engine)
+        self.tile = None
+
+    def render(self, console):
+        console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
+
+        elements = []
 
         if self.tile != None:
             if self.tile.explored or not self.engine.settings["show-fog"]:
-                lines.append(f"")
-                lines.append("Tile")
-                lines.append("Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y))
-                lines.append("Trrn: {}".format(self.tile.terrain.__class__.__name__))
+                elements.extend([
+                    ui_elem.Break(),
+                    "Tile",
+                    "Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y),
+                    "Trrn: {}".format(self.tile.terrain.__class__.__name__),
+                ])
 
                 if len(self.tile.entities) == 0:
-                    lines.append("Entities: None")
+                    elements.append("Entities: None")
                 else:
-                    lines.append("Entities:")
+                    elements.append("Entities:")
 
                     for entity in self.tile.entities:
                         if isinstance(entity, htr.Hunter):
-                            lines.append("~Hntr")
+                            elements.append("~Hntr")
                         elif isinstance(entity, rbt.Rabbit):
-                            lines.append("~Rbbt")
+                            elements.append("~Rbbt")
                         elif isinstance(entity, wlf.Wolf):
-                            lines.append("~Wolf")
+                            elements.append("~Wolf")
                         elif isinstance(entity, rbt.Burrow):
-                            lines.append("~Brrw")
+                            elements.append("~Brrw")
                         elif isinstance(entity, bb.BerryBush):
-                            lines.append("~BrryBsh")
-                            lines.append(f" ~Berries: {entity.num_berries}")
+                            elements.extend([
+                                "~BrryBsh",
+                                f" ~Berries: {entity.num_berries}",
+                            ])
                         elif isinstance(entity, cp.Camp):
-                            lines.append("~Camp")
+                            elements.append("~Camp")
                             for component in entity.components:
-                                lines.append(f" ~{component.name()}")
+                                elements.append(f" ~{component.name()}")
             else:
-                lines.append(f"")
-                lines.append("???")
+                elements.extend([
+                    ui_elem.Break(),
+                    "???",
+                ])
+        
+        lines = self.render_elements(elements)
+        # TODO refactoring this shit
+        lines = self.pad_window_text_lines(lines, self.height)
+        lines = lines[0:self.height-2]
+        lines.extend([
+            self.get_divider_line(self.width),
+            self.get_divider_line(self.width),
+        ])
+        # ---------------------
+        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
 
+
+class SelectionPanel(Panel):
+    def __init__(self, x, y, height, width, engine):
+        super().__init__(x, y, height, width, engine)
+    
+    def render(self, console):
+        console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
+
+        elements = []
+
+        if self.engine.selected_entity != None:
+            if hasattr(self.engine.selected_entity, "selection_info"):
+                elements.extend([
+                    ui_elem.Break(),
+                    "Selected:",
+                ])
+
+                for info in self.engine.selected_entity.selection_info():
+                    if isinstance(info, str):
+                        elements.append(ui_elem.PaddedText(info, 1))
+                    elif isinstance(info, dict):
+                        for key, val in info.items():
+                            elements.append(ui_elem.PaddedText(key, 1))
+
+                            if isinstance(val, list):
+                                for subval in val:
+                                    elements.append(ui_elem.PaddedText("~"+subval, 2))
+            elif hasattr(self.engine.selected_entity, "name"):
+                elements.extend([
+                    ui_elem.Break(),
+                    "Selected:",
+                    ui_elem.PaddedText(self.engine.selected_entity.name, 1),
+                ])
+            else:
+                elements.extend([
+                ui_elem.Break(),
+                "Selected:",
+                "None",
+            ])
+        else:
+            elements.extend([
+                ui_elem.Break(),
+                "Selected:",
+                "None",
+            ])
+        
+        lines = self.render_elements(elements)
+        # TODO refactor this shit
         lines = self.pad_window_text_lines(lines, self.height)
         lines = lines[0:self.height-1]
-        lines.append(self.get_header_footer_line(self.width))
-
+        lines.extend([
+            self.get_header_footer_line(self.width),
+        ])
+        # ---------------------
         self.render_window_text_lines(console, lines, self.x, self.y, self.width)
 
 

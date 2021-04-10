@@ -49,7 +49,7 @@ class MouseMovementPlayerAction(PlayerAction):
             curr_tile.hovered = True
             engine.game_map.redraw_tile(curr_tile.x, curr_tile.y)
             engine.hovered_tile = curr_tile
-            engine.stats_panel.tile = curr_tile
+            engine.hover_panel.tile = curr_tile
 
         hovered_element = engine.ui_collision_layer.tiles[self.y][self.x]
         if hovered_element != None:

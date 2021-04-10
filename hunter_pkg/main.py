@@ -68,6 +68,8 @@ def main() -> None:
 
     engine.init_ui_collision_layer()
     engine.init_stats_panel()
+    engine.init_hover_panel()
+    engine.init_selection_panel()
     engine.init_action_log_panel()
     engine.init_game_menu_panel()
     engine.init_controls_panel()

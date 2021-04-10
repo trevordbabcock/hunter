@@ -23,7 +23,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Wolf(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), [stats.Stats.map()["wolf"]["update-interval-start"], stats.Stats.map()["wolf"]["update-interval-end"]], stats.Stats.map()["wolf"]["update-interval-step"])
+        super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), [stats.Stats.map()["wolf"]["update-interval-start"], stats.Stats.map()["wolf"]["update-interval-end"]], stats.Stats.map()["wolf"]["update-interval-step"], "Wolf")
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["wolf"]["max-health"]
@@ -40,6 +40,19 @@ class Wolf(base_entity.IntelligentEntity):
         flog.debug("a wolf died")
         self.alive = False
         self.char = "x"
+    
+    def selection_info(self):
+        info = [self.name]
+
+        if not self.alive:
+            info.append("*Dead*")
+        
+        info.extend([
+            f"Coord: ({self.x},{self.y})",
+            f"Hlth: {self.curr_health}/{self.max_health}",
+        ])
+
+        return info
 
     def progress(self):
         pass

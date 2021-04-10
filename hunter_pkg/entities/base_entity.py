@@ -1,5 +1,4 @@
 import enum
-from typing import Tuple
 
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
@@ -13,7 +12,7 @@ from hunter_pkg import status_effects as stfx
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Entity:
-    def __init__(self, engine, x: int, y: int, char: str, color: Tuple[int, int, int], bg_color: Tuple[int, int, int]):
+    def __init__(self, engine, x, y, char, color, bg_color, name="<Unknown>"):
         self.x = x
         self.y = y
         self.char = char
@@ -23,6 +22,7 @@ class Entity:
         self.base_bg_color = bg_color
         self.engine = engine
         self.selected = False
+        self.name = name
 
     def move(self, dx, dy):
         dest_x = self.x + dx
@@ -52,8 +52,8 @@ class Entity:
 
 
 class IntelligentEntity(Entity):
-    def __init__(self, engine, x: int, y: int, char: str, color: Tuple[int, int, int], bg_color: Tuple[int, int, int], ai, update_interval_range: list, update_interval_step: float):
-        super().__init__(engine, x, y, char, color, bg_color)
+    def __init__(self, engine, x, y, char, color, bg_color, ai, update_interval_range, update_interval_step, name):
+        super().__init__(engine, x, y, char, color, bg_color, name)
         self.alive = True
         self.ai = ai
         self.update_interval_start = update_interval_range[0]
@@ -146,11 +146,12 @@ class IntelligentEntity(Entity):
 
 
 class StaticEntity():
-    def __init__(self, engine, x, y, update_interval):
+    def __init__(self, engine, x, y, update_interval, name="<Unknown>"):
         self.engine = engine
         self.x = x
         self.y = y
         self.update_interval = update_interval
+        self.name = name
     
     def progress(self):
         raise NotImplementedError
