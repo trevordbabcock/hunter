@@ -12,6 +12,8 @@ class Camp:
         self.fg_color = colors.white()
         self.bg_color = colors.safe_blue()
         self.components = [FirePit(engine), Bedroll(), WoodPile()]
+        self.name = "Camp"
+        self.entity_name = self.name
 
 
 class CampComponent():

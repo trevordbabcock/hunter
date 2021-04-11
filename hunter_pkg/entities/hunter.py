@@ -30,7 +30,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"], "Hunter")
+        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"], "Hunter", "the")
         self.name = self.get_name()
         self.alive = True
         self.asleep = False
@@ -47,9 +47,9 @@ class Hunter(base_entity.IntelligentEntity):
         self.bandage_threshold = stats.Stats.map()["hunter"]["bandage-threshold"]
         self.bandage_heal_amount = stats.Stats.map()["hunter"]["bandage-heal-amount"]
         self.memory = HunterMemory()
-        self.recent_actions = []
-        self.max_recent_actions = 100
-        self.min_recent_actions = 30
+        # self.recent_actions = []
+        self.max_recent_actions = stats.Stats.map()["hunter"]["max-recent-actions"]
+        self.min_recent_actions = stats.Stats.map()["hunter"]["min-recent-actions"]
         self.days_survived = 1
         self.rt_spawn_time = time()
         self.bow = bw.Bow()
@@ -158,12 +158,7 @@ class Hunter(base_entity.IntelligentEntity):
             self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
             self.try_flush_recent_actions()
     
-    def try_flush_recent_actions(self):
-        #flog.debug(f"hunter recent_actions: {len(self.recent_actions)}")
 
-        if len(self.recent_actions) > self.max_recent_actions:
-            self.recent_actions = self.recent_actions[self.max_recent_actions-self.min_recent_actions:]
-            flog.debug("flushed hunter recent_actions")
 
     def get_rt_time_alive(self):
         rt_time_alive = timedelta(seconds=round(time() - self.rt_spawn_time))

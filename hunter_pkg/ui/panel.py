@@ -7,6 +7,7 @@ from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import wolf as wlf
 
 from hunter_pkg.helpers import coord
+from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
 
 from hunter_pkg.ui import element as ui_elem
@@ -264,17 +265,23 @@ class ActionLogPanel(Panel):
         super().__init__(x, y, height, width, engine)
         self.tile = None
 
+    # TODO refactor to use ui_elem
     def render(self, console):
         lines = []
 
         console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
+        action_log_target = self.engine.selected_entity
+
+        if action_log_target == None or not gen.has_member(action_log_target, "recent_actions"):
+            action_log_target = self.engine.hunter
+
         lines.append(self.get_header_footer_line(self.width))
         lines.append("")
-        lines.append("Hunter Action Log:")
+        lines.append(f"{action_log_target.entity_name} Action Log:")
 
         num_lines_possible = self.height - 5
-        recent_actions_subset = self.engine.hunter.recent_actions[-num_lines_possible:]
+        recent_actions_subset = action_log_target.recent_actions[-num_lines_possible:]
 
         for line in recent_actions_subset:
             lines.append("".join([" ", line]))

@@ -55,7 +55,7 @@ class Wolf(base_entity.IntelligentEntity):
         return info
 
     def progress(self):
-        pass
+        self.try_flush_recent_actions()
 
 
 class WolfAI():
@@ -115,6 +115,8 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         self.search_for_classes = [c.__name__ for c in search_for_classes]
     
     def perform(self):
+        flog.debug("wolf is roaming")
+        self.wolf.recent_actions.append(f"Wolf is roaming.")
         search_area = self.get_search_area(self.wolf, self.search_radius, vsmap.circle)
         found_entities = self.find_entities(search_area, self.search_for_classes)
         living_entities = [entity for entity in found_entities if entity.alive]
@@ -133,6 +135,8 @@ class PursueAction():
 
     def perform(self):
         flog.debug("wolf is pursuing")
+        self.wolf.recent_actions.append(f"Wolf is pursuing {self.target.entity_article} {self.target.entity_name.lower()}.")
+
         if self.wolf.alive:
             dy, dx = pf.path_to_target(self.wolf, self.target)
             self.wolf.move(dx, dy)
@@ -151,6 +155,7 @@ class AttackAction():
     def perform(self):
         if not self.target.hidden:
             flog.debug("wolf is attacking")
+            self.wolf.recent_actions.append(f"Wolf is attacking {self.target.entity_article} {self.target.entity_name.lower()}.")
             self.target.harm(self.wolf.attk_dmg)
 
             if not self.target.alive:
@@ -167,5 +172,6 @@ class EatRabbitAction():
 
     def perform(self):
         flog.debug("wolf is eating a rabbit")
+        self.wolf.recent_actions.append(f"Wolf is eating a rabbit.")
         self.rabbit.consume()
             

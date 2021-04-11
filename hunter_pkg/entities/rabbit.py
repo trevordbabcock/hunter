@@ -64,7 +64,7 @@ class Rabbit(base_entity.IntelligentEntity):
         self.engine.game_map.redraw_tile(self.x, self.y)
 
     def progress(self):
-        pass
+        self.try_flush_recent_actions()
 
     def selection_info(self):
         info = [self.name]
@@ -110,7 +110,8 @@ class RabbitAI():
             flog.debug("rabbit is hungry")
             self.action_queue.append(SearchAreaAction(self.rabbit, (trrn.Grass, trrn.Forest)))
         elif self.rabbit.is_tired():
-            flog.debug("rabbit is sleepy")
+            flog.debug("rabbit is tired")
+            self.rabbit.recent_actions.append("Rabbit is going to its burrow.")
             for action in pf.path_to_dest(self.rabbit, [self.rabbit.burrow.x, self.rabbit.burrow.y], MovementAction):
                 self.rabbit.ai.action_queue.append(action)
 
@@ -171,6 +172,7 @@ class GrazeAction():
 
     def perform(self):
         flog.debug("rabbit is grazing")
+        self.rabbit.recent_actions.append("Rabbit is grazing.")
 
 
 class SleepAction():
@@ -182,11 +184,13 @@ class SleepAction():
 
         if self.rabbit.is_tired() or sleep_in:
             flog.debug("rabbit is sleeping")
+            self.rabbit.recent_actions.append("Rabbit is asleep in its burrow.")
             self.rabbit.asleep = True
             self.rabbit.hide()
             self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
         else:
             flog.debug("rabbit woke up")
+            self.rabbit.recent_actions.append("Rabbit woke up and is leaving its burrow.")
             self.rabbit.asleep = False
             self.rabbit.unhide()
             

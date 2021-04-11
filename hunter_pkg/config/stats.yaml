@@ -33,6 +33,9 @@ bedroll:
 bow:
     accuracy: 0.9
     damage: 10
+entity:
+    max-recent-actions: 40
+    min-recent-actions: 15
 fire-pit:
     duration: 0.06
 ground:
@@ -75,6 +78,8 @@ hunter:
     camp:
         x-spawn: 49
         y-spawn: 10
+    max-recent-actions: 100
+    min-recent-actions: 30
 rabbit:
     spawn: 0.01
     hunger-chance: 0.7

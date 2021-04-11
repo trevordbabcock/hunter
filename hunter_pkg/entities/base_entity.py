@@ -6,13 +6,14 @@ from hunter_pkg.helpers import rng
 from hunter_pkg import colors
 from hunter_pkg import flogging
 from hunter_pkg import log_level
+from hunter_pkg import stats
 from hunter_pkg import status_effects as stfx
 
 
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Entity:
-    def __init__(self, engine, x, y, char, color, bg_color, name="<Unknown>"):
+    def __init__(self, engine, x, y, char, color, bg_color, name="<Unknown>", article="<Unknown>"):
         self.x = x
         self.y = y
         self.char = char
@@ -23,6 +24,8 @@ class Entity:
         self.engine = engine
         self.selected = False
         self.name = name
+        self.entity_name = name
+        self.entity_article = article
 
     def move(self, dx, dy):
         dest_x = self.x + dx
@@ -50,10 +53,9 @@ class Entity:
         self.bg_color = self.base_bg_color
 
 
-
 class IntelligentEntity(Entity):
-    def __init__(self, engine, x, y, char, color, bg_color, ai, update_interval_range, update_interval_step, name):
-        super().__init__(engine, x, y, char, color, bg_color, name)
+    def __init__(self, engine, x, y, char, color, bg_color, ai, update_interval_range, update_interval_step, name, article="a"):
+        super().__init__(engine, x, y, char, color, bg_color, name, article)
         self.alive = True
         self.ai = ai
         self.update_interval_start = update_interval_range[0]
@@ -63,6 +65,9 @@ class IntelligentEntity(Entity):
         self.min_health, self.max_health = [0, 0]
         self.min_hunger, self.max_hunger = [0, 0]
         self.min_energy, self.max_energy = [0, 0]
+        self.recent_actions = []
+        self.max_recent_actions = stats.Stats.map()["entity"]["max-recent-actions"]
+        self.min_recent_actions = stats.Stats.map()["entity"]["min-recent-actions"]
 
     def get_update_interval(self):
         return rng.range_float(self.update_interval_start, self.update_interval_stop, self.update_interval_step)
@@ -144,6 +149,11 @@ class IntelligentEntity(Entity):
     def is_target_in_range(self, target):
         return self.x == target.x and self.y == target.y
 
+    def try_flush_recent_actions(self):
+        if len(self.recent_actions) > self.max_recent_actions:
+            self.recent_actions = self.recent_actions[self.max_recent_actions-self.min_recent_actions:]
+            flog.debug("flushed entity recent_actions")
+
 
 class StaticEntity():
     def __init__(self, engine, x, y, update_interval, name="<Unknown>"):
@@ -152,6 +162,7 @@ class StaticEntity():
         self.y = y
         self.update_interval = update_interval
         self.name = name
+        self.entity_name = name
     
     def progress(self):
         raise NotImplementedError
