@@ -227,6 +227,12 @@ class Engine:
                 if (isinstance(entity, rbt.Rabbit) and not entity.asleep) or not isinstance(entity, rbt.Rabbit):
                     console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
+        if self.selected_entity != None:
+            entity = self.selected_entity
+
+            if not isinstance(entity, rbt.Burrow):
+                console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+
         if self.settings["show-ui"]:
             self.stats_panel.render(console)
             self.hover_panel.render(console)
