@@ -1,5 +1,7 @@
 import enum
 
+from hunter_pkg.entities import maps
+
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 
@@ -172,3 +174,9 @@ class StaticEntity():
 
     def requeue(self):
         return True # TODO only if not dead
+
+# for entities that can be hidden using the entity overview panel
+class Hideable():
+    def is_visible(self):
+        if self.name in maps.entity_overview_map:
+            return self.engine.settings["entity-visibility"][maps.entity_overview_map[self.name]]

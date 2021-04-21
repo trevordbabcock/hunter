@@ -137,17 +137,17 @@ class Tile:
                     return self.terrain.get_graphic_dt(time_of_day, ord(" "), None, colors.light_gray())
             elif self.explored:
                 for entity in self.entities:
-                    if isinstance(entity, cp.Camp):
+                    if isinstance(entity, cp.Camp) and entity.is_visible():
                         return self.terrain.get_graphic_dt(time_of_day, entity.char, entity.fg_color, entity.bg_color)
-                    elif isinstance(entity, bb.BerryBush):
+                    elif isinstance(entity, bb.BerryBush) and entity.is_visible():
                         return self.terrain.get_graphic_dt(time_of_day, None, None, entity.bg_color(time_of_day))
             else:
                 return (ord(" "), colors.black(), colors.black())
         else:
             for entity in self.entities:
-                if isinstance(entity, cp.Camp):
+                if isinstance(entity, cp.Camp) and entity.is_visible():
                     return self.terrain.get_graphic_dt(time_of_day, entity.char, entity.fg_color, entity.bg_color)
-                elif isinstance(entity, bb.BerryBush):
+                elif isinstance(entity, bb.BerryBush) and entity.is_visible():
                     return self.terrain.get_graphic_dt(time_of_day, None, None, colors.dark_green(time_of_day))
 
             if self.hovered:

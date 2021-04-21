@@ -16,8 +16,8 @@ from hunter_pkg import colors
 from hunter_pkg import flogging
 from hunter_pkg import log_level
 
-
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
+
 
 class Panel():
     def __init__(self, x, y, height, width, engine):
@@ -30,68 +30,46 @@ class Panel():
 
         self.top_left_coord = coord.Coord(self.x - 1, self.y - 1)
         self.bottom_right_coord = coord.Coord(self.x + self.width - 1, self.y + self.height - 1)
-    
-    def get_header_footer_line(self, width):
-        chars = []
-
-        for i in range(width):
-            if (i % 2) == 0:
-                chars.append("-")
-            else:
-                chars.append(".")
-        
-        return "".join(chars)
-    
-    def get_divider_line(self, width):
-        chars = []
-
-        for i in range(width):
-            chars.append("-")
-        
-        return "".join(chars)
-    
-    def center_line(self, width, line):
-        return " " * floor((width - 2 - len(line))/2) + line
 
     def render(self, console):
         pass
 
-    def render_window_text_lines(self, console, lines, x, y, width):
-        for i in range(len(lines)):
-            line_y = i + y
-            ui_elem.WindowTextLine(lines[i], width).render(console, x, line_y, ".")
+    def base_render(self, console, elements, x, y, width):
+        for i in range(len(elements)):
+            element_y = y + self.get_cumulative_elements_height(elements, i)
+            elements[i].render(console, x, element_y, width, ".")
 
-    def render_elements(self, elements):
-        lines = []
-
-        for e in elements:
-            if(isinstance(e, str)):
-                lines.append(e)
+    def get_cumulative_elements_height(self, elements, i):
+        height = 0
+        for j in range(len(elements[0:i])):
+            if gen.has_member(elements[j], 'height'):
+                height += elements[j].height
             else:
-                rendered = e.render()
+                height += 1
 
-                if(isinstance(e, ui_elem.Button)):
-                    # calculate button x and y since this is the only opportunity
-                    x = self.x + floor((self.width - 2 - e.width)/2) + 1
-                    y = self.y + len(lines)
+        return height
 
-                    e.x = x
-                    e.y = y
+    def pad_elements_with_breaks(self, elements, height):
+        for i in range(height - len(elements)):
+            elements.append(ui_elem.Break())
 
-                    self.engine.ui_collision_layer.create_hitbox(e, coord.Coord(e.x, e.y), coord.Coord(e.x + e.width, e.y + e.height))
+        return elements
+    
+    def truncate_elements(self, elements, n=1):
+        return elements[0:self.height-n]
 
-                if(isinstance(rendered, list)):
-                    lines.extend(rendered)
-                else:
-                    lines.append(rendered)
+    def create_hitboxes(self, elements):
+        for i in range(len(elements)):
+            e = elements[i]
 
-        return lines
+            if(isinstance(e, ui_elem.Button) or isinstance(e, ui_elem.TextOnlyButton)):
+                x = self.x + floor((self.width - e.width)/2)
+                y = self.y + self.get_cumulative_elements_height(elements, i)
 
-    def pad_window_text_lines(self, lines, height):
-        for i in range(height - len(lines)):
-            lines.append("")
+                e.x = x
+                e.y = y
 
-        return lines
+                self.engine.ui_collision_layer.create_hitbox(e, coord.Coord(e.x, e.y), coord.Coord(e.x + e.width, e.y + e.height))
 
     def show(self):
         self.hidden = False
@@ -112,7 +90,7 @@ class StatsPanel(Panel):
         Example: 20900 to "20:50"
         """
         day_time = math.get_decimal(game_time)
-        time_str = "{:04.0f}".format(day_time*10000)
+        time_str = "{:04.0f}".format(day_time * 10000)
         # this converts hour subdivisions from 100 to 60 (minutes)
         converted_minute_int = floor(int(time_str[2] + time_str[3])/100 * 60)
         minute_str = str(converted_minute_int)
@@ -122,26 +100,25 @@ class StatsPanel(Panel):
         console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
         elements = [
-            ui_elem.HeaderFooter(self.width),
-            self.center_line(self.width, f"Day {self.engine.days_elapsed}"),
-            self.center_line(self.width, self.engine.time_of_day.capitalize()),
-            self.center_line(self.width, f"{self.format_game_time(self.engine.game_time)}"),
+            ui_elem.HeaderFooter(),
+            ui_elem.CenteredText(f"Day {self.engine.days_elapsed}"),
+            ui_elem.CenteredText(self.engine.time_of_day.capitalize()),
+            ui_elem.CenteredText(f"{self.format_game_time(self.engine.game_time)}"),
             ui_elem.Break(),
-            f"{self.engine.hunter.name}",
-            "The Hunter",
+            ui_elem.Text(f"{self.engine.hunter.human_name}"),
+            ui_elem.Text("The Hunter"),
             ui_elem.Break(),
-            f"Surv {self.engine.hunter.days_survived} days",
+            ui_elem.Text(f"Surv {self.engine.hunter.days_survived} days"),
             ui_elem.Break(),
-            "Hlth {:02.0f}/{}".format(self.engine.hunter.curr_health, self.engine.hunter.max_health),
-            "Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger),
-            "Nrgy {:02.0f}/{}".format(self.engine.hunter.curr_energy, self.engine.hunter.max_energy),
+            ui_elem.Text("Hlth {:02.0f}/{}".format(self.engine.hunter.curr_health, self.engine.hunter.max_health)),
+            ui_elem.Text("Hngr {:02.0f}/{}".format(self.engine.hunter.curr_hunger, self.engine.hunter.max_hunger)),
+            ui_elem.Text("Nrgy {:02.0f}/{}".format(self.engine.hunter.curr_energy, self.engine.hunter.max_energy)),
             ui_elem.Break(),
-            ui_elem.Divider(self.width),
-            ui_elem.Divider(self.width),
+            ui_elem.Divider(),
+            ui_elem.Divider(),
         ]
         
-        lines = self.render_elements(elements)
-        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+        self.base_render(console, elements, self.x, self.y, self.width)
 
 
 class HoverPanel(Panel):
@@ -158,50 +135,46 @@ class HoverPanel(Panel):
             if self.tile.explored or not self.engine.settings["show-fog"]:
                 elements.extend([
                     ui_elem.Break(),
-                    "Tile",
-                    "Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y),
-                    "Trrn: {}".format(self.tile.terrain.__class__.__name__),
+                    ui_elem.Text("Tile"),
+                    ui_elem.Text("Coord: ({:02.0f},{:02.0f})".format(self.tile.x, self.tile.y)),
+                    ui_elem.Text("Trrn: {}".format(self.tile.terrain.__class__.__name__)),
                 ])
 
                 if len(self.tile.entities) == 0:
-                    elements.append("Entities: None")
+                    elements.append(ui_elem.Text("Entities: None"))
                 else:
-                    elements.append("Entities:")
+                    elements.append(ui_elem.Text("Entities:"))
 
                     for entity in self.tile.entities:
                         if isinstance(entity, htr.Hunter):
-                            elements.append("~Hntr")
+                            elements.append(ui_elem.Text("~Hntr"))
                         elif isinstance(entity, rbt.Rabbit):
-                            elements.append("~Rbbt")
+                            elements.append(ui_elem.Text("~Rbbt"))
                         elif isinstance(entity, wlf.Wolf):
-                            elements.append("~Wolf")
+                            elements.append(ui_elem.Text("~Wolf"))
                         elif isinstance(entity, rbt.Burrow):
-                            elements.append("~Brrw")
+                            elements.append(ui_elem.Text("~Brrw"))
                         elif isinstance(entity, bb.BerryBush):
                             elements.extend([
-                                "~BrryBsh",
-                                f" ~Berries: {entity.num_berries}",
+                                ui_elem.Text("~BrryBsh"),
+                                ui_elem.Text(f" ~Berries: {entity.num_berries}"),
                             ])
                         elif isinstance(entity, cp.Camp):
-                            elements.append("~Camp")
+                            elements.append(ui_elem.Text("~Camp"))
                             for component in entity.components:
-                                elements.append(f" ~{component.name()}")
+                                elements.append(ui_elem.Text(f" ~{component.name()}"))
             else:
                 elements.extend([
                     ui_elem.Break(),
-                    "???",
+                    ui_elem.Text("???"),
                 ])
         
-        lines = self.render_elements(elements)
-        # TODO refactoring this shit
-        lines = self.pad_window_text_lines(lines, self.height)
-        lines = lines[0:self.height-2]
-        lines.extend([
-            self.get_divider_line(self.width),
-            self.get_divider_line(self.width),
-        ])
-        # ---------------------
-        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+        elements = self.pad_elements_with_breaks(elements, self.height)
+        elements = self.truncate_elements(elements, 2)
+        elements.append(ui_elem.Divider())
+        elements.append(ui_elem.Divider())
+
+        self.base_render(console, elements, self.x, self.y, self.width)
 
 
 class SelectionPanel(Panel):
@@ -217,7 +190,7 @@ class SelectionPanel(Panel):
             if hasattr(self.engine.selected_entity, "selection_info"):
                 elements.extend([
                     ui_elem.Break(),
-                    "Selected:",
+                    ui_elem.Text("Selected:"),
                 ])
 
                 for info in self.engine.selected_entity.selection_info():
@@ -229,35 +202,31 @@ class SelectionPanel(Panel):
 
                             if isinstance(val, list):
                                 for subval in val:
-                                    elements.append(ui_elem.PaddedText("~"+subval, 2))
+                                    elements.append(ui_elem.PaddedText("~" + subval, 2))
             elif hasattr(self.engine.selected_entity, "name"):
                 elements.extend([
                     ui_elem.Break(),
-                    "Selected:",
+                    ui_elem.Text("Selected:"),
                     ui_elem.PaddedText(self.engine.selected_entity.name, 1),
                 ])
             else:
                 elements.extend([
-                ui_elem.Break(),
-                "Selected:",
-                "None",
-            ])
+                    ui_elem.Break(),
+                    ui_elem.Text("Selected:"),
+                    ui_elem.Text("None"),
+                ])
         else:
             elements.extend([
                 ui_elem.Break(),
-                "Selected:",
-                "None",
+                ui_elem.Text("Selected:"),
+                ui_elem.Text("None"),
             ])
         
-        lines = self.render_elements(elements)
-        # TODO refactor this shit
-        lines = self.pad_window_text_lines(lines, self.height)
-        lines = lines[0:self.height-1]
-        lines.extend([
-            self.get_header_footer_line(self.width),
-        ])
-        # ---------------------
-        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+        elements = self.pad_elements_with_breaks(elements, self.height)
+        elements = self.truncate_elements(elements)
+        elements.append(ui_elem.HeaderFooter())
+
+        self.base_render(console, elements, self.x, self.y, self.width)
 
 
 class ActionLogPanel(Panel):
@@ -265,9 +234,8 @@ class ActionLogPanel(Panel):
         super().__init__(x, y, height, width, engine)
         self.tile = None
 
-    # TODO refactor to use ui_elem
     def render(self, console):
-        lines = []
+        elements = []
 
         console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
@@ -276,21 +244,23 @@ class ActionLogPanel(Panel):
         if action_log_target == None or not gen.has_member(action_log_target, "recent_actions"):
             action_log_target = self.engine.hunter
 
-        lines.append(self.get_header_footer_line(self.width))
-        lines.append("")
-        lines.append(f"{action_log_target.entity_name} Action Log:")
+        elements.extend([
+            ui_elem.HeaderFooter(),
+            ui_elem.Break(),
+            ui_elem.Text(f"{action_log_target.entity_name} Action Log:"),
+        ])
 
-        num_lines_possible = self.height - 5
-        recent_actions_subset = action_log_target.recent_actions[-num_lines_possible:]
+        num_actions_possible = self.height - 5
+        recent_actions_subset = action_log_target.recent_actions[-num_actions_possible:]
 
-        for line in recent_actions_subset:
-            lines.append("".join([" ", line]))
+        for action in recent_actions_subset:
+            elements.append(ui_elem.PaddedText(action, 1))
 
-        lines = self.pad_window_text_lines(lines, self.height) 
-        lines = lines[0:self.height-1]
-        lines.append(self.get_header_footer_line(self.width))
+        elements = self.pad_elements_with_breaks(elements, self.height)
+        elements = self.truncate_elements(elements)
+        elements.append(ui_elem.HeaderFooter())
 
-        self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+        self.base_render(console, elements, self.x, self.y, self.width)
 
 
 class GameMenuPanel(Panel):
@@ -309,7 +279,7 @@ class GameMenuPanel(Panel):
             console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
             elements = [
-                ui_elem.HeaderFooter(self.width),
+                ui_elem.HeaderFooter(),
                 ui_elem.Break(3),
                 ui_elem.Button("open_ctrls_btn", "Controls", self.button_width, self.width, self.engine),
                 ui_elem.Break(1),
@@ -319,11 +289,11 @@ class GameMenuPanel(Panel):
                 ui_elem.Break(1),
                 ui_elem.Button("exit_btn", "Exit", self.button_width, self.width, self.engine),
                 ui_elem.Break(3),
-                ui_elem.HeaderFooter(self.width)
+                ui_elem.HeaderFooter()
             ]
 
-            lines = self.render_elements(elements)
-            self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+            self.base_render(console, elements, self.x, self.y, self.width)
+            self.create_hitboxes(elements) # TODO could maybe use decorator here
 
 
 class ControlsPanel(Panel):
@@ -341,17 +311,54 @@ class ControlsPanel(Panel):
             console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
 
             elements = [
-                ui_elem.HeaderFooter(self.width),
+                ui_elem.HeaderFooter(),
                 ui_elem.Break(3),
-                "   Esc: show escape menu",
-                "     F: show/hide fog of war",
-                "     H: show/hide ",
-                " Spc/P: pause game",
-                ui_elem.Break(3),
+                ui_elem.Text("   Esc: show escape menu"),
+                ui_elem.Text("     F: show/hide fog of war"),
+                ui_elem.Text("     H: show/hide UI"),
+                ui_elem.Text("     E: show/hide entity panel"),
+                ui_elem.Text(" Spc/P: pause game"),
+                ui_elem.Break(2),
                 ui_elem.Button("close_ctrls_btn", "Close", 13, self.width, self.engine),
                 ui_elem.Break(2),
-                ui_elem.HeaderFooter(self.width)
+                ui_elem.HeaderFooter(),
             ]
 
-            lines = self.render_elements(elements)
-            self.render_window_text_lines(console, lines, self.x, self.y, self.width)
+            self.base_render(console, elements, self.x, self.y, self.width)
+            self.create_hitboxes(elements)
+
+
+class EntityOverviewPanel(Panel):
+    def __init__(self, x, y, height, width, engine):
+        super().__init__(x, y, height, width, engine)
+        self.x = x
+        self.y = y
+        self.height = height
+        self.width = width
+        self.engine = engine
+        self.hidden = False
+
+    def render(self, console):
+        if not self.hidden:
+            console.draw_rect(x=self.x, y=self.y, height=self.height, width=self.width, ch=1, bg=self.color)
+
+            counts = self.engine.get_entity_counts()
+            key = "entity-visibility"
+            
+            elements = [
+                ui_elem.HeaderFooter(),
+                ui_elem.CenteredText(f"Entities"),
+                ui_elem.CenteredText(f"Show / Hide"),
+                ui_elem.Break(2),
+                ui_elem.ToggleableTextOnlyButton("entity-hunter-btn", f" {counts[htr.Hunter]} Hunter", self.engine, key),
+                ui_elem.ToggleableTextOnlyButton("entity-rabbit-btn", f" {counts[rbt.Rabbit]} Rabbits", self.engine, key),
+                ui_elem.ToggleableTextOnlyButton("entity-wolf-btn", f" {counts[wlf.Wolf]}  Wolves", self.engine, key),
+                ui_elem.ToggleableTextOnlyButton("entity-berry-bush-btn", f" {counts[bb.BerryBush]} Berry Bushes", self.engine, key),
+            ]
+
+            elements = self.pad_elements_with_breaks(elements, self.height)
+            elements = self.truncate_elements(elements)
+            elements.append(ui_elem.HeaderFooter())
+
+            self.base_render(console, elements, self.x, self.y, self.width)
+            self.create_hitboxes(elements)

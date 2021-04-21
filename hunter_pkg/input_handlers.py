@@ -36,6 +36,8 @@ class InputHandler(tcod.event.EventDispatch[pact.PlayerAction]):
             player_action = pact.TogglePausePlayerAction()
         elif key == tcod.event.K_ESCAPE:
             player_action = pact.EscapePlayerAction()
+        elif key == tcod.event.K_e:
+            player_action = pact.ToggleEntityOverviewAction()
 
         return player_action
 

@@ -31,7 +31,8 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
         super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"], "Hunter", "the")
-        self.name = self.get_name()
+        self.human_name = self.get_human_name()
+        self.name = "Hunter"
         self.alive = True
         self.asleep = False
         self.hidden = False
@@ -47,7 +48,6 @@ class Hunter(base_entity.IntelligentEntity):
         self.bandage_threshold = stats.Stats.map()["hunter"]["bandage-threshold"]
         self.bandage_heal_amount = stats.Stats.map()["hunter"]["bandage-heal-amount"]
         self.memory = HunterMemory()
-        # self.recent_actions = []
         self.max_recent_actions = stats.Stats.map()["hunter"]["max-recent-actions"]
         self.min_recent_actions = stats.Stats.map()["hunter"]["min-recent-actions"]
         self.days_survived = 1
@@ -56,7 +56,7 @@ class Hunter(base_entity.IntelligentEntity):
         self.bed = None
         self.accuracy = stats.Stats.map()["hunter"]["accuracy"]
     
-    def get_name(self):
+    def get_human_name(self):
         with open("resources/names.json") as file:
             flog.debug("opened a file")
             names = json.load(file)
@@ -168,7 +168,7 @@ class Hunter(base_entity.IntelligentEntity):
 
     def selection_info(self):
         info = [
-            self.name,
+            self.human_name,
             "The Hunter"
         ]
 

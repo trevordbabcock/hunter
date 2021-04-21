@@ -3,7 +3,9 @@ import enum
 from hunter_pkg import colors
 from hunter_pkg import stats
 
-class Camp:
+from hunter_pkg.entities import base_entity
+
+class Camp(base_entity.Hideable):
     def __init__(self, engine, x, y):
         self.engine = engine
         self.x = x

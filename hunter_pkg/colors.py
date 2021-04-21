@@ -8,6 +8,12 @@ def black():
 def light_gray():
     return (75,75,75)
 
+def lighter_gray():
+    return (224, 223, 215)
+
+def popcorn():
+    return (219, 206, 131)
+
 def brown():
     return (89,46,12)
 
@@ -46,7 +52,9 @@ def white(time_of_day=None):
     else:
         raise("no color for time of day {}".format(time_of_day))
 
-def red(time_of_day):
+def red(time_of_day=None):
+    if time_of_day == None:
+        return red_morning()
     if time_of_day == "morning":
         return red_morning()
     elif time_of_day == "afternoon":
@@ -58,8 +66,10 @@ def red(time_of_day):
     else:
         raise("no color for time of day {}".format(time_of_day))
 
-def blue(time_of_day):
-    if time_of_day == "morning":
+def blue(time_of_day=None):
+    if time_of_day == None:
+        return blue_morning()
+    elif time_of_day == "morning":
         return blue_morning()
     elif time_of_day == "afternoon":
         return blue_afternoon()
@@ -70,8 +80,10 @@ def blue(time_of_day):
     else:
         raise("no color for time of day {}".format(time_of_day))
 
-def green(time_of_day):
-    if time_of_day == "morning":
+def green(time_of_day=None):
+    if time_of_day == None:
+        return green_morning()
+    elif time_of_day == "morning":
         return green_morning()
     elif time_of_day == "afternoon":
         return green_afternoon()
@@ -82,8 +94,10 @@ def green(time_of_day):
     else:
         raise("no color for time of day {}".format(time_of_day))
 
-def dark_green(time_of_day):
-    if time_of_day == "morning":
+def dark_green(time_of_day=None):
+    if time_of_day == None:
+        return dark_green_morning()
+    elif time_of_day == "morning":
         return dark_green_morning()
     elif time_of_day == "afternoon":
         return dark_green_afternoon()
@@ -94,8 +108,10 @@ def dark_green(time_of_day):
     else:
         raise("no color for time of day {}".format(time_of_day))
         
-def orange(time_of_day):
-    if time_of_day == "morning":
+def orange(time_of_day=None):
+    if time_of_day == None:
+        return orange_morning()
+    elif time_of_day == "morning":
         return orange_morning()
     elif time_of_day == "afternoon":
         return orange_afternoon()
@@ -111,7 +127,7 @@ def dark_gray_morning():
     return (31,31,31)
 
 def white_morning():
-    return (201, 200, 186)
+    return (224, 223, 215)
 
 def red_morning():
     return (248, 37, 103)

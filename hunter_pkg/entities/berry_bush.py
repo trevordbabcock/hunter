@@ -7,9 +7,10 @@ from hunter_pkg import colors
 from hunter_pkg import stats
 
 
-class BerryBush(base_entity.StaticEntity):
+class BerryBush(base_entity.StaticEntity, base_entity.Hideable):
     def __init__(self, engine, x, y):
         super().__init__(engine, x, y, stats.Stats.map()["berry-bush"]["update-interval"], "Berry Bush")
+        self.name = "Berry Bush"
         self.bg_color = colors.dark_green
         self.berry_limit = rng.range_int(stats.Stats.map()["berry-bush"]["min-berry-limit"], stats.Stats.map()["berry-bush"]["max-berry-limit"])
         self.num_berries = rng.range_int(stats.Stats.map()["berry-bush"]["spawn-min-berries"], stats.Stats.map()["berry-bush"]["spawn-max-berries"])
@@ -34,6 +35,7 @@ class BerryBush(base_entity.StaticEntity):
             f"Coord: ({self.x},{self.y})",
             f"Berries: {self.num_berries}"
         ]
+
 
 class Berry():
     def __init__(self):

@@ -7,6 +7,7 @@ from hunter_pkg import log_level
 from hunter_pkg import pathfinder
 
 from hunter_pkg.helpers import coord
+from hunter_pkg.helpers import generic as gen
 
 from hunter_pkg.ui import element as ui_elem
 
@@ -53,7 +54,7 @@ class MouseMovementPlayerAction(PlayerAction):
 
         hovered_element = engine.ui_collision_layer.tiles[self.y][self.x]
         if hovered_element != None:
-            flog.debug(f"hit {hovered_element} on ({self.x},{self.y})")
+            flog.debug(f"hit {hovered_element.id} on ({self.x},{self.y})")
             engine.hovered_ui_element = hovered_element
         else:
             engine.hovered_ui_element = None
@@ -61,14 +62,27 @@ class MouseMovementPlayerAction(PlayerAction):
 
 class MouseUpPlayerAction(PlayerAction):
     def perform(self, engine):
-        if engine.hovered_ui_element and isinstance(engine.hovered_ui_element, ui_elem.Button):
-            if engine.hovered_ui_element.id == "exit_btn":
-                raise SystemExit
-            elif engine.hovered_ui_element.id == "open_ctrls_btn":
-                engine.game_menu_panel.hide()
-                engine.controls_panel.show()
-            elif engine.hovered_ui_element.id == "close_ctrls_btn":
-                engine.controls_panel.hide()
+        if engine.hovered_ui_element != None:
+            if isinstance(engine.hovered_ui_element, ui_elem.Button):
+                if engine.hovered_ui_element.id == "exit_btn":
+                    raise SystemExit
+                elif engine.hovered_ui_element.id == "open_ctrls_btn":
+                    engine.game_menu_panel.hide()
+                    engine.controls_panel.show()
+                elif engine.hovered_ui_element.id == "close_ctrls_btn":
+                    engine.controls_panel.hide()
+            elif isinstance(engine.hovered_ui_element, ui_elem.TextOnlyButton):
+                if gen.has_method(engine.hovered_ui_element, "toggle"):
+                    engine.hovered_ui_element.toggle()
+
+                    if engine.hovered_ui_element.id in ["entity-hunter-btn", "entity-rabbit-btn", "entity-wolf-btn", "entity-berry-bush-btn"]:
+                        # if engine.selected_entity:
+                        #     engine.selected_entity.deselect()
+                        #     engine.selected_entity = None
+                        
+                        engine.game_map.redraw_all()
+
+                        
         elif engine.hovered_tile:
             engine.hovered_tile.select_next_entity(engine)
 
@@ -85,6 +99,12 @@ class ToggleVisionPlayerAction(PlayerAction):
 class ToggleUIPlayerAction(PlayerAction):
     def perform(self, engine):
         engine.settings["show-ui"] = not engine.settings["show-ui"]
+        engine.game_map.redraw_all()
+
+
+class ToggleEntityOverviewAction(PlayerAction):
+    def perform(self, engine):
+        engine.settings["show-entity-overview"] = not engine.settings["show-entity-overview"]
         engine.game_map.redraw_all()
 
 

@@ -1,8 +1,9 @@
 settings:
     #seed: 1615070703
-    game-speed: 5
+    game-speed: 2
     show-fog: true
     show-ui: true
+    show-entity-overview: false
     game-time:
         initial: 0.06
         factors:
@@ -16,6 +17,11 @@ settings:
             afternoon: 0.12
             evening: 0.17
             night: 0.2
+    entity-visibility:
+        entity-hunter-btn: true
+        entity-rabbit-btn: true
+        entity-wolf-btn: true
+        entity-berry-bush-btn: true
 berry-bush:
     spawn: 0.020
     update-interval: 800

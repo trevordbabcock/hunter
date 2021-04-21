@@ -9,9 +9,13 @@ from tcod.context import Context
 from tcod.console import Console
 
 from hunter_pkg.entities import berry_bush as bb
+from hunter_pkg.entities import camp as cp
+from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import wolf as wlf
+from hunter_pkg.entities import maps
 
+from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 from hunter_pkg.helpers import time_of_day as tod
@@ -117,6 +121,7 @@ class Engine:
     def spawn_entities(self):
         intelligent_entities = []
         static_entities = []
+        self.berry_bush_count = 0
 
         # wolf = wlf.Wolf(self, 20, 20)
         # self.game_map.tiles[20][20].entities.append(wolf)
@@ -140,8 +145,26 @@ class Engine:
                         berry_bush = bb.BerryBush(self, x, y)
                         self.game_map.tiles[y][x].entities.append(berry_bush)
                         static_entities.append(berry_bush)
+                        self.berry_bush_count += 1
 
         return intelligent_entities, static_entities
+
+    def get_entity_counts(self):
+        counts = {
+            bb.BerryBush: self.berry_bush_count,
+            htr.Hunter: 0,
+            wlf.Wolf: 0,
+            rbt.Rabbit: 0,
+        }
+
+        for entity in self.intelligent_entities:
+            if (gen.has_member(entity, 'alive') and entity.alive) or not gen.has_member(entity, 'alive'):
+                if not entity.__class__ in counts:
+                    counts[entity.__class__] = 1
+                else:
+                    counts[entity.__class__] += 1
+        
+        return counts
 
     def init_ui_collision_layer(self):
         self.ui_collision_layer = ui_cllsn.CollisionLayer(self.game_map.height, self.game_map.width)
@@ -172,11 +195,16 @@ class Engine:
 
     def init_controls_panel(self):
         height = 18
-        width = 31
+        width = 33
         y_offset = -3
         x = round((self.game_map.width / 2) - (width / 2))
         y = round((self.game_map.height / 2) - (height / 2)) + y_offset
         self.controls_panel = ui_panel.ControlsPanel(x=x, y=y, height=height, width=width, engine=self)
+
+    def init_entity_overview_panel(self):
+        width = 19
+        x = self.game_map.width - width - 2
+        self.entity_overview_panel = ui_panel.EntityOverviewPanel(x=x, y=1, height=58, width=width, engine=self)
 
     # TODO dedup this (duplicated in hunter.py)
     def init_fog_reveal(self):
@@ -206,8 +234,8 @@ class Engine:
     def find_hunter_spawn_point(self):
         camp_x_min = round(self.game_map.width * 0.25)
         camp_x_max = round(self.game_map.width * 0.75)
-        camp_y_min = round(self.game_map.height * 0.25)
-        camp_y_max = round(self.game_map.height * 0.75)
+        camp_y_min = round(self.game_map.height * 0.2)
+        camp_y_max = round(self.game_map.height * 0.6)
         found = False
 
         # TODO make this smarter
@@ -224,14 +252,26 @@ class Engine:
 
         for entity in self.intelligent_entities:
             if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:
-                if (isinstance(entity, rbt.Rabbit) and not entity.asleep) or not isinstance(entity, rbt.Rabbit):
-                    console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+                if entity.name in maps.entity_overview_map:
+                    if not self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]:
+                        continue
+
+                if (isinstance(entity, rbt.Rabbit) and entity.asleep):
+                    continue
+
+                console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
         if self.selected_entity != None:
             entity = self.selected_entity
 
-            if not isinstance(entity, rbt.Burrow):
-                console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+            if not isinstance(entity, rbt.Burrow) and not isinstance(entity, bb.BerryBush) and not isinstance(entity, cp.Camp):
+                render_selected = True
+
+                if entity.name in maps.entity_overview_map:
+                    render_selected = self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]
+
+                if render_selected:
+                    console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
         if self.settings["show-ui"]:
             self.stats_panel.render(console)
@@ -240,5 +280,8 @@ class Engine:
             self.action_log_panel.render(console)
             self.game_menu_panel.render(console)
             self.controls_panel.render(console)
+
+            if self.settings["show-entity-overview"]:
+                self.entity_overview_panel.render(console)
 
         context.present(console)
