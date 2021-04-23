@@ -11,30 +11,14 @@
   * ~~**v0.8** - include procedural map generation, increase map size, improve game balance~~
   * ~~**v1.0** - add wolves, hunter vs wolf combat~~
 * **v1 - playability, ui, and technical improvements**
-  - add escape menu
-    - pauses game
-    - option to exit game
-    - (eventual) option to save game
-    - option to view controls
-  - add ability to save and load game
-  - make entities selectable
-    - show stats for selected unit
-    - make entities selectable and display action log just for that entity
-    - allow selection while paused
-    - when clicking on a cell with multiple entities, each click should select the next entity on that cell
-    - the selected entity should be bolded in the cell entity list
-  - change action system so that different actions can have different cooldowns
-  - make creatures hideable
-    - check boxes to show/hide
-    - also show total number of each entity
-  - fix hunter find-and-search-eat-berry duplication bug
-    - add ellipses for duplicate messages
-  - make hunter highlightable?
+  - ~~**v1.1** - add escape menu, entity selection, entity overview panel, pausing~~
+  - **v1.2** - add deer, improve wolf behavior
+  - **v1.3** - add saving/loading game
+  - **v1.4** - add hunter foraging and storing food
+  - **v1.5** - add scrolling, improve map procgen
 * **v2 - improve ecosystem**
   * **v2.1** - add another creature 1
   * **v2.2** - add another creature 2
   * **v2.3** - add point of interest 1
   * **v2.4** - add point of interest 2
-* **v3 - prototype map size scaling**
-  * **v3.1** - add ability to pan camera
-* **v4 - improve graphics?**
+* **v3 - improve graphics? add more terrain types? add fullscreen?**
