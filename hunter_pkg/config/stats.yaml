@@ -17,6 +17,7 @@ settings:
             afternoon: 0.12
             evening: 0.17
             night: 0.2
+    default-update-interval: 0.0015
     entity-visibility:
         entity-hunter-btn: true
         entity-rabbit-btn: true
@@ -24,7 +25,7 @@ settings:
         entity-berry-bush-btn: true
 berry-bush:
     spawn: 0.020
-    update-interval: 800
+    update-interval: 1
     spawn-min-berries: 5
     spawn-max-berries: 10
     grow-min-berries: 1
@@ -72,9 +73,6 @@ hunter:
     hunger-threshold-low: 25
     hunger-threshold-high: 50
     tired-threshold: 15
-    update-interval-start: 0.001
-    update-interval-end: 0.0015
-    update-interval-step: 0.0001
     accuracy: 0.9
     attack-damage: 12
     max-path-distance: 12
@@ -86,13 +84,14 @@ hunter:
         y-spawn: 10
     max-recent-actions: 100
     min-recent-actions: 30
+    action-cooldowns:
+        default: 0.0015
+        movement-action: 0.0015
+        search-area-action: 0.0021
 rabbit:
     spawn: 0.01
     hunger-chance: 0.7
     sleep-in-chance: 0.7
-    update-interval-start: 0.001
-    update-interval-end: 0.0015
-    update-interval-step: 0.0001
     max-health: 5
     starting-health: 5
     nutritional-value: 25
@@ -102,11 +101,12 @@ rabbit:
         afternoon: 1
         evening: 1
         night: 1
+    action-cooldowns:
+        default: 0.0015
+        movement-action: 0.001
+        graze-action: 0.002
 wolf:
     spawn: 0.00027
-    update-interval-start: 0.001
-    update-interval-end: 0.0015
-    update-interval-step: 0.0001
     max-health: 30
     starting-health: 50
     roam-distance: 12
@@ -116,3 +116,8 @@ wolf:
         afternoon: 5
         evening: 4
         night: 3
+    action-cooldowns:
+        default: 0.0015
+        movement-action: 0.0016
+        pursue-action: 0.001
+        search-area-action: 0.0016

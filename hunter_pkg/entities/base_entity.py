@@ -56,13 +56,10 @@ class Entity:
 
 
 class IntelligentEntity(Entity):
-    def __init__(self, engine, x, y, char, color, bg_color, ai, update_interval_range, update_interval_step, name, article="a"):
+    def __init__(self, engine, x, y, char, color, bg_color, ai, name, article="a"):
         super().__init__(engine, x, y, char, color, bg_color, name, article)
         self.alive = True
         self.ai = ai
-        self.update_interval_start = update_interval_range[0]
-        self.update_interval_stop = update_interval_range[1]
-        self.update_interval_step = update_interval_step
         self.status_effects = []
         self.min_health, self.max_health = [0, 0]
         self.min_hunger, self.max_hunger = [0, 0]
@@ -70,9 +67,6 @@ class IntelligentEntity(Entity):
         self.recent_actions = []
         self.max_recent_actions = stats.Stats.map()["entity"]["max-recent-actions"]
         self.min_recent_actions = stats.Stats.map()["entity"]["min-recent-actions"]
-
-    def get_update_interval(self):
-        return rng.range_float(self.update_interval_start, self.update_interval_stop, self.update_interval_step)
 
     def requeue(self):
         return self.alive

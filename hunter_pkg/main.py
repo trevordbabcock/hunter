@@ -76,8 +76,9 @@ def main() -> None:
     engine.init_entity_overview_panel()
     engine.init_fog_reveal()
 
-    engine.init_event_queue(engine.intelligent_entities)
-    engine.init_event_queue(engine.static_entities)
+    engine.init_entropy_event_queue(engine.intelligent_entities)
+    engine.init_entropy_event_queue(engine.static_entities)
+    engine.init_ai_event_queue(engine.intelligent_entities)
     #n = 0
     with tcod.context.new_terminal(
         screen_width,
@@ -96,7 +97,8 @@ def main() -> None:
 
             if not engine.paused:
                 engine.advance_game_time()
-                engine.process_events()
+                engine.process_entropy_events()
+                engine.process_ai_events()
 
             engine.render(console=root_console, context=context)
             

@@ -4,6 +4,7 @@ from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import entity_actions as enta
 
 from hunter_pkg.helpers import direction
+from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 from hunter_pkg.helpers import time_of_day as tod
@@ -21,7 +22,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Rabbit(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), RabbitAI(self), [stats.Stats.map()["rabbit"]["update-interval-start"], stats.Stats.map()["rabbit"]["update-interval-end"]], stats.Stats.map()["rabbit"]["update-interval-step"], "Rabbit")
+        super().__init__(engine, x, y, "R", colors.white(), colors.light_gray(), RabbitAI(self), "Rabbit")
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["rabbit"]["max-health"]
@@ -87,15 +88,21 @@ class RabbitAI():
     def __init__(self, rabbit):
         self.rabbit = rabbit
         self.action_queue = deque()
+        self.default_cooldown = stats.Stats.map()["rabbit"]["action-cooldowns"]["default"]
 
     def perform(self):
+        cooldown = self.default_cooldown
+
         if len(self.action_queue) > 0:
             action = self.action_queue.popleft()
+            cooldown = action.cooldown if gen.has_member(action, 'cooldown') else self.default_cooldown 
             action.perform()
         else:
             actions = self.decide_what_to_do()
             for a in actions:
                 self.action_queue.append(a)
+        
+        return cooldown
 
     def decide_what_to_do(self):
         actions = []
@@ -139,6 +146,7 @@ class MovementAction():
         self.rabbit = rabbit
         self.dx = dx
         self.dy = dy
+        self.cooldown = stats.Stats.map()["rabbit"]["action-cooldowns"]["movement-action"]
     
     def perform(self):
         if self.rabbit.alive:
@@ -169,6 +177,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
 class GrazeAction():
     def __init__(self, rabbit):
         self.rabbit = rabbit
+        self.cooldown = stats.Stats.map()["rabbit"]["action-cooldowns"]["graze-action"]
 
     def perform(self):
         flog.debug("rabbit is grazing")

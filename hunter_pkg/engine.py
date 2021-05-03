@@ -47,7 +47,8 @@ class Engine:
         self.static_entities = static_entities
         self.input_handler = input_handler
         self.game_map = game_map
-        self.event_queue = deque()
+        self.entropy_event_queue = deque()
+        self.ai_event_queue = deque()
         self.hunter = None
         self.camp = None
         self.hovered_tile = None
@@ -65,11 +66,17 @@ class Engine:
 
             action.perform(self)
 
-    def init_event_queue(self, entities):
+    def init_entropy_event_queue(self, entities):
         for entity in entities:
-            self.event_queue.append(ev.Event(entity))
+            self.entropy_event_queue.append(ev.EntropyEvent(entity))
 
-        self.event_queue = deque(sorted(self.event_queue))
+        self.entropy_event_queue = deque(sorted(self.entropy_event_queue))
+
+    def init_ai_event_queue(self, entities):
+        for entity in entities:
+            self.ai_event_queue.append(ev.AIEvent(entity, rng.range_float(0, self.settings["default-update-interval"], 0.0001)))
+
+        self.ai_event_queue = deque(sorted(self.ai_event_queue))
 
     def advance_game_time(self):
         prev_time = self.game_time
@@ -105,16 +112,31 @@ class Engine:
         else:
             return tod.NIGHT
 
-    def process_events(self):
-        flog.debug(f"event_queue len: {len(self.event_queue)}")
-        while(len(self.event_queue) > 0):
-            event = self.event_queue[0]
+    # Queue of events that should occur steadily as the game progresses e.g. berry bush regrows berries, hunter becomes more hungry/tired, etc.
+    def process_entropy_events(self):
+        flog.debug(f"entropy_event_queue len: {len(self.entropy_event_queue)}")
+        while(len(self.entropy_event_queue) > 0):
+            event = self.entropy_event_queue[0]
 
             if event.time < self.game_time:
                 event.process()
-                self.event_queue.popleft()
+                self.entropy_event_queue.popleft()
                 if event.entity.requeue():
-                    insort(self.event_queue, ev.Event(event.entity))
+                    insort(self.entropy_event_queue, ev.EntropyEvent(event.entity))
+            else:
+                break
+
+    # Queue of events that don't occur steadily, but rather have independent "cooldowns" e.g. hunter shoot bow action, hunter move action, etc.
+    def process_ai_events(self):
+        flog.debug(f"ai_event_queue len: {len(self.ai_event_queue)}")
+        while(len(self.ai_event_queue) > 0):
+            event = self.ai_event_queue[0]
+
+            if event.time < self.game_time:
+                cooldown = event.process()
+                self.ai_event_queue.popleft()
+                if event.entity.requeue():
+                    insort(self.ai_event_queue, ev.AIEvent(event.entity, self.game_time + cooldown))
             else:
                 break
 

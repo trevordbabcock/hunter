@@ -13,6 +13,7 @@ from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import wolf as wlf
 
+from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 from hunter_pkg.helpers import time_of_day as tod
@@ -30,7 +31,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Hunter(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), [stats.Stats.map()["hunter"]["update-interval-start"], stats.Stats.map()["hunter"]["update-interval-end"]], stats.Stats.map()["hunter"]["update-interval-step"], "Hunter", "the")
+        super().__init__(engine, x, y, "H", colors.white(), colors.hunter_green(), HunterAI(self), "Hunter", "the")
         self.human_name = self.get_human_name()
         self.name = "Hunter"
         self.alive = True
@@ -193,16 +194,23 @@ class HunterAI():
     def __init__(self, hunter):
         self.hunter = hunter
         self.action_queue = deque()
+        self.default_cooldown = stats.Stats.map()["hunter"]["action-cooldowns"]["default"]
 
+    # returns cooldown of AI action that was performed
     def perform(self):
+        cooldown = self.default_cooldown
+
         if self.hunter.alive:
             if len(self.action_queue) > 0:
                 action = self.action_queue.popleft()
+                cooldown = action.cooldown if gen.has_member(action, 'cooldown') else self.default_cooldown
                 action.perform()
             else:
                 actions = self.decide_what_to_do()
                 for a in actions:
                     self.action_queue.append(a)
+        
+        return cooldown
     
     def clear_action_queue(self):
         self.action_queue = deque()
@@ -298,6 +306,7 @@ class MovementAction():
         self.hunter = hunter
         self.dx = dx
         self.dy = dy
+        self.cooldown = stats.Stats.map()["hunter"]["action-cooldowns"]["movement-action"]
 
     def remember_terrain(self, hunter):
         vd = self.hunter.vision_distance[hunter.engine.time_of_day]
@@ -337,6 +346,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         self.hunter = hunter
         self.search_radius = self.hunter.vision_distance[hunter.engine.time_of_day]
         self.search_for_classes = [c.__name__ for c in search_for_classes]
+        self.cooldown = stats.Stats.map()["hunter"]["action-cooldowns"]["search-area-action"]
 
     def perform(self):
         flog.debug("hunter is searching area")

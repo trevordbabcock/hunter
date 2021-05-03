@@ -6,6 +6,7 @@ from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 
 from hunter_pkg.helpers import direction
+from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 from hunter_pkg.helpers import time_of_day as tod
@@ -23,7 +24,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Wolf(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), [stats.Stats.map()["wolf"]["update-interval-start"], stats.Stats.map()["wolf"]["update-interval-end"]], stats.Stats.map()["wolf"]["update-interval-step"], "Wolf")
+        super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), "Wolf")
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["wolf"]["max-health"]
@@ -62,16 +63,22 @@ class WolfAI():
     def __init__(self, wolf):
         self.wolf = wolf
         self.action_queue = deque()
+        self.default_cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["default"]
 
     def perform(self):
+        cooldown = self.default_cooldown
+
         if self.wolf.alive:
             if len(self.action_queue) > 0:
                 action = self.action_queue.popleft()
+                cooldown = action.cooldown if gen.has_member(action, 'cooldown') else self.default_cooldown 
                 action.perform()
             else:
                 actions = self.decide_what_to_do()
                 for a in actions:
                     self.action_queue.append(a)
+        
+        return cooldown
 
     def decide_what_to_do(self):
         actions = []
@@ -102,6 +109,7 @@ class MovementAction():
         self.wolf = wolf
         self.dx = dx
         self.dy = dy
+        self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["movement-action"]
     
     def perform(self):
         if self.wolf.alive:
@@ -113,6 +121,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
         self.wolf = wolf
         self.search_radius = self.wolf.vision_distance[self.wolf.engine.time_of_day]
         self.search_for_classes = [c.__name__ for c in search_for_classes]
+        self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["search-area-action"]
     
     def perform(self):
         flog.debug("wolf is roaming")
@@ -132,6 +141,7 @@ class PursueAction():
     def __init__(self, wolf, target):
         self.wolf = wolf
         self.target = target
+        self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["pursue-action"]
 
     def perform(self):
         flog.debug("wolf is pursuing")
