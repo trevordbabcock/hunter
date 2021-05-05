@@ -4,5 +4,6 @@ entity_overview_map = {
     "Camp": "entity-hunter-btn",
     "Rabbit": "entity-rabbit-btn",
     "Wolf": "entity-wolf-btn",
+    "Deer": "entity-deer-btn",
     "Berry Bush": "entity-berry-bush-btn",
 }

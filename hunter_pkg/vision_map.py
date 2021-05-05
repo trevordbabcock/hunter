@@ -87,6 +87,22 @@ def circle(radius):
         ]
         
         return generate_vision_map(schematic)
+    elif radius == 6:
+        schematic = [
+            [_,_,_,_,l,l,l,l,l,_,_,_,_],
+            [_,_,l,l,l,l,l,l,l,l,l,_,_],
+            [_,l,l,l,l,l,l,l,l,l,l,l,_],
+            [l,l,l,l,l,l,l,l,l,l,l,l,l],
+            [l,l,l,l,l,l,l,l,l,l,l,l,l],
+            [l,l,l,l,l,l,X,l,l,l,l,l,l],
+            [l,l,l,l,l,l,l,l,l,l,l,l,l],
+            [l,l,l,l,l,l,l,l,l,l,l,l,l],
+            [_,l,l,l,l,l,l,l,l,l,l,l,_],
+            [_,_,l,l,l,l,l,l,l,l,l,_,_],
+            [_,_,_,_,l,l,l,l,l,_,_,_,_],
+        ]
+        
+        return generate_vision_map(schematic)
     else:
         raise NotImplementedError
 

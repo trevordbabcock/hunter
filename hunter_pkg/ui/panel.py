@@ -2,6 +2,7 @@ from math import floor
 
 from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import camp as cp
+from hunter_pkg.entities import deer as dr
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import wolf as wlf
@@ -353,6 +354,7 @@ class EntityOverviewPanel(Panel):
                 ui_elem.ToggleableTextOnlyButton("entity-hunter-btn", f" {counts[htr.Hunter]} Hunter", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-rabbit-btn", f" {counts[rbt.Rabbit]} Rabbits", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-wolf-btn", f" {counts[wlf.Wolf]}  Wolves", self.engine, key),
+                ui_elem.ToggleableTextOnlyButton("entity-deer-btn", f" {counts[dr.Deer]}  Deer", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-berry-bush-btn", f" {counts[bb.BerryBush]} Berry Bushes", self.engine, key),
             ]
 

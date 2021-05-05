@@ -75,7 +75,7 @@ class MouseUpPlayerAction(PlayerAction):
                 if gen.has_method(engine.hovered_ui_element, "toggle"):
                     engine.hovered_ui_element.toggle()
 
-                    if engine.hovered_ui_element.id in ["entity-hunter-btn", "entity-rabbit-btn", "entity-wolf-btn", "entity-berry-bush-btn"]:
+                    if engine.hovered_ui_element.id in ["entity-hunter-btn", "entity-rabbit-btn", "entity-wolf-btn", "entity-deer-btn", "entity-berry-bush-btn"]:
                         # if engine.selected_entity:
                         #     engine.selected_entity.deselect()
                         #     engine.selected_entity = None

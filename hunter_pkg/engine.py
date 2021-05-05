@@ -10,6 +10,7 @@ from tcod.console import Console
 
 from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import camp as cp
+from hunter_pkg.entities import deer as dr
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 from hunter_pkg.entities import wolf as wlf
@@ -162,6 +163,10 @@ class Engine:
                         wolf = wlf.Wolf(self, x, y)
                         self.game_map.tiles[y][x].entities.append(wolf)
                         intelligent_entities.append(wolf)
+                    if rng.rand() < stats.Stats.map()["deer"]["spawn"]:
+                        deer = dr.Deer(self, x, y)
+                        self.game_map.tiles[y][x].entities.append(deer)
+                        intelligent_entities.append(deer)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)
@@ -174,6 +179,7 @@ class Engine:
     def get_entity_counts(self):
         counts = {
             bb.BerryBush: self.berry_bush_count,
+            dr.Deer: 0,
             htr.Hunter: 0,
             wlf.Wolf: 0,
             rbt.Rabbit: 0,
