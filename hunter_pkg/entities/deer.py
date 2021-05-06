@@ -22,7 +22,7 @@ flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Deer(base_entity.IntelligentEntity):
     def __init__(self, engine, x: int, y: int):
-        super().__init__(engine, x, y, "D", colors.white(), colors.light_gray(), DeerAI(self), "Deer")
+        super().__init__(engine, x, y, self.char, colors.white(), colors.light_gray(), self.ai, "Deer")
         self.alive = True
         self.asleep = False
         self.max_health = stats.Stats.map()["deer"]["max-health"]
@@ -37,7 +37,6 @@ class Deer(base_entity.IntelligentEntity):
 
     def is_tired(self):
         return self.engine.time_of_day == tod.NIGHT
-    
 
     def die(self):
         flog.debug("a deer died")
@@ -72,6 +71,23 @@ class Deer(base_entity.IntelligentEntity):
         return info
 
 
+class Buck(Deer):
+    def __init__(self, engine, x, y):
+        self.char = "D"
+        self.ai = BuckAI(self)
+        super().__init__(engine, x, y)
+        self.entity_name = "Buck"
+        self.entity_article = "the"
+
+
+class Doe(Deer):
+    def __init__(self, engine, x, y, buck):
+        self.char = "d"
+        self.ai = DoeAI(self, buck)
+        super().__init__(engine, x, y)
+        self.entity_name = "Doe"
+
+
 class DeerAI():
     def __init__(self, deer):
         self.deer = deer
@@ -97,10 +113,10 @@ class DeerAI():
         
         if self.deer.is_hungry():
             flog.debug("deer is hungry")
-            self.action_queue.append(SearchAreaAction(self.deer, (trrn.Grass, trrn.Forest)))
+            self.action_queue.append(GrazeAction(self.deer))
         elif self.deer.is_tired():
             flog.debug("deer is tired")
-            self.deer.recent_actions.append("Deer is laying down.")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} is laying down.")
             self.deer.ai.action_queue.append(SleepAction(self.deer))
         else:
             self.roam()
@@ -109,6 +125,7 @@ class DeerAI():
 
     def roam(self):
         flog.debug("deer is roaming")
+        self.deer.recent_actions.append(f"{self.deer.entity_name} is roaming.")
         dist = stats.Stats.map()["deer"]["roam-distance"]
         max_x = self.deer.engine.game_map.width - 1
         max_y = self.deer.engine.game_map.height - 1
@@ -118,6 +135,56 @@ class DeerAI():
 
         for action in pf.path_to_dest(self.deer, [dest.x, dest.y], MovementAction):
             self.deer.ai.action_queue.append(action)
+
+
+class BuckAI(DeerAI):
+    def __init__(self, buck):
+        self.buck = buck
+        super().__init__(buck)
+
+
+class DoeAI(DeerAI):
+    def __init__(self, doe, buck):
+        self.doe = doe
+        self.buck = buck
+        self.leash = stats.Stats.map()["doe"]["leash"]
+        super().__init__(doe)
+    
+    def decide_what_to_do(self):
+        actions = []
+        
+        if self.is_too_far_from_buck():
+            self.doe.ai.action_queue.append(PursueAction(self.doe, self.buck))
+        if self.doe.is_hungry():
+            flog.debug("doe is hungry")
+            self.action_queue.append(GrazeAction(self.doe))
+        elif self.doe.is_tired():
+            flog.debug("doe is tired")
+            self.doe.recent_actions.append("Doe is laying down.")
+            self.doe.ai.action_queue.append(SleepAction(self.doe))
+        else:
+            self.roam()
+        
+        return actions
+
+    def is_too_far_from_buck(self):
+        dist_x = abs(self.doe.x - self.buck.x)
+        dist_y = abs(self.doe.y - self.buck.y)
+
+        return (dist_x + dist_y) > self.leash
+    
+    # TODO dedupe this somehow
+    def roam(self):
+        flog.debug("doe is roaming")
+        dist = stats.Stats.map()["doe"]["roam-distance"]
+        max_x = self.doe.engine.game_map.width - 1
+        max_y = self.doe.engine.game_map.height - 1
+        dest_x = math.clamp(rng.range_int(self.doe.x - dist, self.doe.x + dist + 1), 0, max_x)
+        dest_y = math.clamp(rng.range_int(self.doe.y - dist, self.doe.y + dist + 1), 0, max_y)
+        dest = self.doe.engine.game_map.tiles[dest_y][dest_x]
+
+        for action in pf.path_to_dest(self.doe, [dest.x, dest.y], MovementAction):
+            self.doe.ai.action_queue.append(action)
 
 
 class MovementAction():
@@ -130,6 +197,26 @@ class MovementAction():
     def perform(self):
         if self.deer.alive:
             self.deer.move(self.dx, self.dy)
+
+
+class PursueAction():
+    def __init__(self, deer, target):
+        self.deer = deer
+        self.target = target
+        self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["pursue-action"]
+
+    def perform(self):
+        flog.debug("deer is pursuing")
+        self.deer.recent_actions.append(f"{self.deer.entity_name} is pursuing {self.target.entity_article} {self.target.entity_name.lower()}.")
+
+        if self.deer.alive:
+            dy, dx = pf.path_to_target(self.deer, self.target)
+            self.deer.move(dx, dy)
+
+            if self.deer.is_target_in_range(self.target):
+                self.deer.recent_actions.append(f"{self.deer.entity_name} has caught up with {self.target.entity_article} {self.target.entity_name.lower()}.")
+            else:
+                self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
@@ -160,7 +247,7 @@ class GrazeAction():
 
     def perform(self):
         flog.debug("deer is grazing")
-        self.deer.recent_actions.append("Deer is grazing.")
+        self.deer.recent_actions.append(f"{self.deer.entity_name} is grazing.")
 
 
 class SleepAction():
@@ -172,10 +259,10 @@ class SleepAction():
 
         if self.deer.is_tired():
             flog.debug("deer is sleeping")
-            self.deer.recent_actions.append("Deer is asleep.")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} is asleep.")
             self.deer.asleep = True
             self.deer.ai.action_queue.append(SleepAction(self.deer))
         else:
             flog.debug("deer woke up")
-            self.deer.recent_actions.append("Deer woke up.")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} woke up.")
             self.deer.asleep = False

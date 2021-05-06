@@ -164,9 +164,14 @@ class Engine:
                         self.game_map.tiles[y][x].entities.append(wolf)
                         intelligent_entities.append(wolf)
                     if rng.rand() < stats.Stats.map()["deer"]["spawn"]:
-                        deer = dr.Deer(self, x, y)
-                        self.game_map.tiles[y][x].entities.append(deer)
-                        intelligent_entities.append(deer)
+                        buck = dr.Buck(self, x, y)
+                        self.game_map.tiles[y][x].entities.append(buck)
+                        intelligent_entities.append(buck)
+
+                        for i in range(rng.range_int(1, 4)):
+                            doe = dr.Doe(self, x, y, buck)
+                            self.game_map.tiles[y][x].entities.append(doe)
+                            intelligent_entities.append(doe)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)

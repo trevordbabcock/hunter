@@ -1,6 +1,6 @@
 settings:
     #seed: 1615070703
-    game-speed: 2
+    game-speed: 5
     show-fog: true
     show-ui: true
     show-entity-overview: false
@@ -42,8 +42,8 @@ bow:
     accuracy: 0.9
     damage: 10
 deer:
-    spawn: 0.001
-    hunger-chance: 0.2
+    spawn: 0.00033
+    hunger-chance: 0.7
     sleep-in-chance: 0.7
     max-health: 40
     starting-health: 40
@@ -56,8 +56,12 @@ deer:
         night: 5
     action-cooldowns:
         default: 0.0015
-        movement-action: 0.0011
+        movement-action: 0.0012
+        pursue-action: 0.0009
         graze-action: 0.003
+doe:
+    leash: 2
+    roam-distance: 1
 entity:
     max-recent-actions: 40
     min-recent-actions: 15

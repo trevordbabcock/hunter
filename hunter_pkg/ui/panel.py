@@ -354,7 +354,7 @@ class EntityOverviewPanel(Panel):
                 ui_elem.ToggleableTextOnlyButton("entity-hunter-btn", f" {counts[htr.Hunter]} Hunter", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-rabbit-btn", f" {counts[rbt.Rabbit]} Rabbits", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-wolf-btn", f" {counts[wlf.Wolf]}  Wolves", self.engine, key),
-                ui_elem.ToggleableTextOnlyButton("entity-deer-btn", f" {counts[dr.Deer]}  Deer", self.engine, key),
+                ui_elem.ToggleableTextOnlyButton("entity-deer-btn", f" {counts[dr.Buck] + counts[dr.Doe]}  Deer", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-berry-bush-btn", f" {counts[bb.BerryBush]} Berry Bushes", self.engine, key),
             ]
 
