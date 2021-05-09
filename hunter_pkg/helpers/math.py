@@ -2,6 +2,8 @@ from math import floor
 
 from hunter_pkg import stats
 
+from hunter_pkg.helpers import coord
+
 def clamp(num, minimum, maximum):
     if minimum <= num <= maximum:
         return num
@@ -26,3 +28,9 @@ def round_game_time(game_time):
 
 def get_decimal(num):
     return num - floor(num)
+
+def get_opposite_coord(coord1, coord2):
+    dx = coord2.x - coord1.x
+    dy = coord2.y - coord1.y
+
+    return coord.Coord(coord1.x - dx, coord1.y - dy)

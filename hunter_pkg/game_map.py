@@ -83,6 +83,12 @@ class GameMap:
 
         self.redraw_reset()
 
+    def get_tile(self, x, y):
+        if y < 0 or x < 0 or y >= self.height or x >= self.width:
+            return None
+        else:
+            return self.tiles[y][x]
+
     def redraw_tile(self, x, y):
         self.redraw_matrix[y, x] = True
 

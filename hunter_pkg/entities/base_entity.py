@@ -34,15 +34,32 @@ class Entity:
         dest_y = self.y + dy
 
         if not self.engine.game_map.in_bounds(dest_x, dest_y):
-            return  # Destination is out of bounds.
+            return
         if not self.engine.game_map.tiles[dest_y][dest_x].terrain.walkable:
-            return  # Destination is blocked by a tile.
+            return
 
         self.engine.game_map.tiles[self.y][self.x].remove_entities([self])
         self.engine.game_map.tiles[dest_y][dest_x].add_entities([self])
 
         self.x += dx
         self.y += dy
+
+    def move_to(self, dest):
+        x_adjacent = abs(self.x - dest.x) <= 1
+        y_adjacent = abs(self.y - dest.y) <= 1
+
+        if not (x_adjacent and y_adjacent):
+            return
+        if not self.engine.game_map.in_bounds(dest.x, dest.y):
+            return
+        if not self.engine.game_map.tiles[dest.y][dest.x].terrain.walkable:
+            return
+
+        self.engine.game_map.tiles[self.y][self.x].remove_entities([self])
+        self.engine.game_map.tiles[dest.y][dest.x].add_entities([self])
+
+        self.x = dest.x
+        self.y = dest.y
 
     def select(self):
         self.selected = True

@@ -146,8 +146,8 @@ class Engine:
         static_entities = []
         self.berry_bush_count = 0
 
-        # wolf = wlf.Wolf(self, 20, 20)
-        # self.game_map.tiles[20][20].entities.append(wolf)
+        # wolf = wlf.Wolf(self, 80, 20)
+        # self.game_map.tiles[20][80].entities.append(wolf)
         # intelligent_entities.append(wolf)
 
         for y, row in enumerate(self.game_map.tiles):

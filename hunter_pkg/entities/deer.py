@@ -2,7 +2,10 @@ from collections import deque
 
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import entity_actions as enta
+from hunter_pkg.entities import hunter as htr
+from hunter_pkg.entities import wolf as wlf
 
+from hunter_pkg.helpers import coord
 from hunter_pkg.helpers import direction
 from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
@@ -29,6 +32,8 @@ class Deer(base_entity.IntelligentEntity):
         self.curr_health = stats.Stats.map()["deer"]["starting-health"]
         self.nutritional_value = stats.Stats.map()["deer"]["nutritional-value"]
         self.vision_distance = stats.Stats.map()["deer"]["vision-distance"]
+        self.roam_distance = stats.Stats.map()["deer"]["roam-distance"]
+        self.attack_damage = stats.Stats.map()["deer"]["attack-damage"]
         self.recent_actions = []
         self.hidden = False
 
@@ -86,6 +91,9 @@ class Doe(Deer):
         self.ai = DoeAI(self, buck)
         super().__init__(engine, x, y)
         self.entity_name = "Doe"
+        self.entity_article = "a"
+        self.roam_distance = stats.Stats.map()["doe"]["roam-distance"]
+        self.attack_damage = stats.Stats.map()["doe"]["attack-damage"]
 
 
 class DeerAI():
@@ -123,18 +131,17 @@ class DeerAI():
         
         return actions
 
-    def roam(self):
+    def roam(self): # DO NOT MERGE 
         flog.debug("deer is roaming")
         self.deer.recent_actions.append(f"{self.deer.entity_name} is roaming.")
-        dist = stats.Stats.map()["deer"]["roam-distance"]
+        dist = self.deer.roam_distance
+        dest = coord.Coord()
         max_x = self.deer.engine.game_map.width - 1
         max_y = self.deer.engine.game_map.height - 1
-        dest_x = math.clamp(rng.range_int(self.deer.x - dist, self.deer.x + dist + 1), 0, max_x)
-        dest_y = math.clamp(rng.range_int(self.deer.y - dist, self.deer.y + dist + 1), 0, max_y)
-        dest = self.deer.engine.game_map.tiles[dest_y][dest_x]
+        dest.x = math.clamp(rng.range_int(self.deer.x - dist, self.deer.x + dist + 1), 0, max_x) # DO NOT MERGE add map clamp helper
+        dest.y = math.clamp(rng.range_int(self.deer.y - dist, self.deer.y + dist + 1), 0, max_y)
 
-        for action in pf.path_to_dest(self.deer, [dest.x, dest.y], MovementAction):
-            self.deer.ai.action_queue.append(action)
+        self.deer.ai.action_queue.append(MovementAction(self.deer, dest))
 
 
 class BuckAI(DeerAI):
@@ -155,7 +162,7 @@ class DoeAI(DeerAI):
         
         if self.is_too_far_from_buck():
             self.doe.ai.action_queue.append(PursueAction(self.doe, self.buck))
-        if self.doe.is_hungry():
+        elif self.doe.is_hungry():
             flog.debug("doe is hungry")
             self.action_queue.append(GrazeAction(self.doe))
         elif self.doe.is_tired():
@@ -172,31 +179,24 @@ class DoeAI(DeerAI):
         dist_y = abs(self.doe.y - self.buck.y)
 
         return (dist_x + dist_y) > self.leash
-    
-    # TODO dedupe this somehow
-    def roam(self):
-        flog.debug("doe is roaming")
-        dist = stats.Stats.map()["doe"]["roam-distance"]
-        max_x = self.doe.engine.game_map.width - 1
-        max_y = self.doe.engine.game_map.height - 1
-        dest_x = math.clamp(rng.range_int(self.doe.x - dist, self.doe.x + dist + 1), 0, max_x)
-        dest_y = math.clamp(rng.range_int(self.doe.y - dist, self.doe.y + dist + 1), 0, max_y)
-        dest = self.doe.engine.game_map.tiles[dest_y][dest_x]
-
-        for action in pf.path_to_dest(self.doe, [dest.x, dest.y], MovementAction):
-            self.doe.ai.action_queue.append(action)
 
 
 class MovementAction():
-    def __init__(self, deer, dy, dx):
+    def __init__(self, deer, dest, path=None):
         self.deer = deer
-        self.dx = dx
-        self.dy = dy
+        self.dest = dest
+        self.path = path
         self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["movement-action"]
-    
+
     def perform(self):
         if self.deer.alive:
-            self.deer.move(self.dx, self.dy)
+            if not self.path:
+                self.path = deque(pf.get_path(self.deer.engine.game_map.path_map, (self.deer.y, self.deer.x), (self.dest.y, self.dest.x)))
+
+            if len(self.path) > 0:
+                next_move = self.path.popleft()
+                self.deer.move_to(coord.Coord(next_move[1], next_move[0]))
+                self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer, self.path))
 
 
 class PursueAction():
@@ -214,30 +214,104 @@ class PursueAction():
             self.deer.move(dx, dy)
 
             if self.deer.is_target_in_range(self.target):
-                self.deer.recent_actions.append(f"{self.deer.entity_name} has caught up with {self.target.entity_article} {self.target.entity_name.lower()}.")
+                if isinstance(self.target, Buck):
+                    self.deer.recent_actions.append(f"{self.deer.entity_name} has caught up with {self.target.entity_article} {self.target.entity_name.lower()}.")
+                    self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer))
+                else:
+                    self.deer.recent_actions.append(f"{self.deer.entity_name} attacked {self.target.entity_article} {self.target.entity_name.lower()}!")
+                    self.deer.ai.action_queue.append(AttackAction(self.deer, self.target))
+                    self.deer.ai.action_queue.append(FleeAction(self.deer, self.target))
             else:
                 self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
 
 
-class SearchAreaAction(enta.SearchAreaActionBase):
-    def __init__(self, deer, search_for_classes):
+class FleeAction():
+    def __init__(self, deer, threat, path=None):
         self.deer = deer
-        self.search_radius = self.deer.vision_distance[self.deer.engine.time_of_day]
-        self.search_for_classes = [c.__name__ for c in search_for_classes]
+        self.threat = threat
+        self.path = path
+        self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["flee-action"]
+        self.flee_search_attempts = stats.Stats.map()["deer"]["flee-search-attempts"]
     
+    def find_pathable_destination(self, deer, threat):
+        path = []
+        deer_coord = coord.Coord(deer.x, deer.y)
+        threat_coord = coord.Coord(threat.x, threat.y)
+        opp_coord = math.get_opposite_coord(deer_coord, threat_coord)
+
+        for i in range(self.flee_search_attempts):
+            x_jitter = rng.range_int(0, i)
+            y_jitter = rng.range_int(0, i)
+            dest_x = opp_coord.x + x_jitter
+            dest_y = opp_coord.y + y_jitter
+
+            tile = self.deer.engine.game_map.get_tile(opp_coord.x + x_jitter, opp_coord.y + y_jitter)
+
+            if tile != None:
+                if tile.terrain.walkable:
+                    path = deque(pf.get_path(self.deer.engine.game_map.path_map, (self.deer.y, self.deer.x), (dest_y, dest_x)))
+
+                if len(path) > 0:
+                    break
+
+        return path
+
+    def perform(self):
+        flog.debug("deer is fleeing")
+        self.deer.recent_actions.append(f"{self.deer.entity_name} is fleeing from {self.threat.entity_article} {self.threat.entity_name.lower()}.")
+
+        if self.deer.alive:
+            if not self.path:
+                self.path = self.find_pathable_destination(self.deer, self.threat)
+
+            if len(self.path) > 0:
+                next_move = self.path.popleft()
+                self.deer.move_to(coord.Coord(next_move[1], next_move[0]))
+
+                if len(self.path) > 0:
+                    self.deer.ai.action_queue.append(FleeAction(self.deer, self.threat, self.path))
+                else:
+                    self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer))
+            else:
+                self.deer.recent_actions.append(f"{self.deer.entity_name} feels trapped and is turning to fight {self.threat.entity_article} {self.threat.entity_name.lower()}!")
+                self.deer.ai.action_queue.append(PursueAction(self.deer, self.threat))
+
+
+class ScanForThreatsAction(enta.SearchAreaActionBase):
+    def __init__(self, deer, path=None):
+        self.deer = deer
+        self.path = path
+        self.search_radius = self.deer.vision_distance[self.deer.engine.time_of_day]
+        self.threat_classes = [wlf.Wolf.__name__, htr.Hunter.__name__]
+        self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["scan-for-threats-action"]
+
     def perform(self):
         search_area = self.get_search_area(self.deer, self.search_radius, vsmap.circle)
-        found_terrain = self.find_terrain(search_area, self.search_for_classes)
+        found_entities = self.find_entities(search_area, self.threat_classes)
+        living_entities = [entity for entity in found_entities if entity.alive]
 
-        if len(found_terrain) > 0:
-            dest = rng.pick_rand(found_terrain)
+        if len(living_entities) > 0:
+            for e in living_entities:
+                if e.__class__.__name__ in self.threat_classes:
+                    self.deer.ai.action_queue.append(FleeAction(self.deer, e))
+                    return
 
-            for action in pf.path_to_dest(self.deer, [dest.x, dest.y], MovementAction):
-                self.deer.ai.action_queue.append(action)
-            
-            self.deer.ai.action_queue.append(GrazeAction(self.deer))
-        else:
-            self.deer.ai.roam()
+                self.deer.recent_actions.append(f"{self.deer.entity_name} scanned for threats and found none.")
+
+        if self.path != None and len(self.path) > 0:
+            self.deer.ai.action_queue.append(MovementAction(self.deer, None, self.path)) # dest None is a little dirty
+
+
+class AttackAction():
+    def __init__(self, deer, target):
+        self.deer = deer
+        self.target = target
+        self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["attack-action"]
+
+    def perform(self):
+        flog.debug("deer is attacking")
+        self.deer.recent_actions.append(f"{self.deer.entity_name} is attacking {self.target.entity_article} {self.target.entity_name.lower()}.")
+        self.target.harm(self.deer.attack_damage)
 
 
 class GrazeAction():
@@ -248,6 +322,7 @@ class GrazeAction():
     def perform(self):
         flog.debug("deer is grazing")
         self.deer.recent_actions.append(f"{self.deer.entity_name} is grazing.")
+        self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer))
 
 
 class SleepAction():
