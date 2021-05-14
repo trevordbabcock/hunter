@@ -6,7 +6,9 @@ from tcod.console import Console
 from hunter_pkg.entities import berry_bush as bb
 from hunter_pkg.entities import camp as cp
 
+from hunter_pkg.helpers.coord import Coord
 from hunter_pkg.helpers import generic as gen
+from hunter_pkg.helpers import math
 
 from hunter_pkg import colors
 from hunter_pkg import flogging
@@ -74,6 +76,15 @@ class GameMap:
     def in_bounds(self, x, y):
         """Return True if x and y are inside of the bounds of this map."""
         return 0 <= x < self.width and 0 <= y < self.height
+
+    def clamp_coord(self, x, y):
+        max_x = self.width - 1
+        max_y = self.height - 1
+        dest = Coord()
+        dest.x = math.clamp(x, 0, max_x)
+        dest.y = math.clamp(y, 0, max_y)
+
+        return dest
 
     def render(self, console, time_of_day):
         indices = np.argwhere(self.redraw_matrix>0)

@@ -6,3 +6,6 @@ class Coord():
 
     def to_tuple(self):
         return (self.x, self.y)
+
+    def to_reverse_tuple(self):
+        return (self.y, self.x)

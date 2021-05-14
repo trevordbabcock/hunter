@@ -3,6 +3,7 @@ from collections import deque
 from hunter_pkg.entities import base_entity
 from hunter_pkg.entities import entity_actions as enta
 
+from hunter_pkg.helpers.coord import Coord
 from hunter_pkg.helpers import direction
 from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
@@ -119,10 +120,7 @@ class RabbitAI():
         elif self.rabbit.is_tired():
             flog.debug("rabbit is tired")
             self.rabbit.recent_actions.append("Rabbit is going to its burrow.")
-            for action in pf.path_to_dest(self.rabbit, [self.rabbit.burrow.x, self.rabbit.burrow.y], MovementAction):
-                self.rabbit.ai.action_queue.append(action)
-
-            self.rabbit.ai.action_queue.append(SleepAction(self.rabbit))
+            self.rabbit.ai.action_queue.append(MovementAction(self.rabbit, self.rabbit.burrow.coord(), None, SleepAction(self.rabbit)))
         else:
             self.roam()
         
@@ -131,26 +129,35 @@ class RabbitAI():
     def roam(self):
         flog.debug("rabbit is roaming")
         dist = stats.Stats.map()["rabbit"]["roam-distance"]
-        max_x = self.rabbit.engine.game_map.width - 1
-        max_y = self.rabbit.engine.game_map.height - 1
-        dest_x = math.clamp(rng.range_int(self.rabbit.x - dist, self.rabbit.x + dist + 1), 0, max_x)
-        dest_y = math.clamp(rng.range_int(self.rabbit.y - dist, self.rabbit.y + dist + 1), 0, max_y)
-        dest = self.rabbit.engine.game_map.tiles[dest_y][dest_x]
+        unclamped_x = rng.range_int(self.rabbit.x - dist, self.rabbit.x + dist + 1)
+        unclamped_y = rng.range_int(self.rabbit.y - dist, self.rabbit.y + dist + 1)
 
-        for action in pf.path_to_dest(self.rabbit, [dest.x, dest.y], MovementAction):
-            self.rabbit.ai.action_queue.append(action)
+        self.rabbit.ai.action_queue.append(MovementAction(self.rabbit, self.rabbit.engine.game_map.clamp_coord(unclamped_x, unclamped_y)))
 
 
 class MovementAction():
-    def __init__(self, rabbit, dy, dx):
+    def __init__(self, rabbit, dest, path=None, final_action=None):
         self.rabbit = rabbit
-        self.dx = dx
-        self.dy = dy
+        self.dest = dest
+        self.path = path
+        self.final_action = final_action
         self.cooldown = stats.Stats.map()["rabbit"]["action-cooldowns"]["movement-action"]
     
     def perform(self):
         if self.rabbit.alive:
-            self.rabbit.move(self.dx, self.dy)
+            if not self.path:
+                self.path = deque(pf.get_path(self.rabbit.engine.game_map.path_map, self.rabbit.coord(), self.dest))
+
+            if len(self.path) > 0:
+                dest = self.path.popleft()
+                self.rabbit.move_to(dest)
+
+                if len(self.path) > 0:
+                    self.rabbit.ai.action_queue.append(MovementAction(self.rabbit, dest, self.path, self.final_action))
+                elif self.final_action:
+                    self.rabbit.ai.action_queue.append(self.final_action)
+            elif self.final_action:
+                self.rabbit.ai.action_queue.append(self.final_action)
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
@@ -165,11 +172,7 @@ class SearchAreaAction(enta.SearchAreaActionBase):
 
         if len(found_terrain) > 0:
             dest = rng.pick_rand(found_terrain)
-
-            for action in pf.path_to_dest(self.rabbit, [dest.x, dest.y], MovementAction):
-                self.rabbit.ai.action_queue.append(action)
-            
-            self.rabbit.ai.action_queue.append(GrazeAction(self.rabbit))
+            self.rabbit.ai.action_queue.append(MovementAction(self.rabbit, Coord(dest.x, dest.y), None, GrazeAction(self.rabbit)))
         else:
             self.rabbit.ai.roam()
 
@@ -212,3 +215,6 @@ class Burrow():
         self.fg_color = colors.white()
         self.bg_color = colors.light_gray()
         self.occupied = False
+
+    def coord(self):
+        return Coord(self.x, self.y)

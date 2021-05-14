@@ -5,7 +5,7 @@ from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import wolf as wlf
 
-from hunter_pkg.helpers import coord
+from hunter_pkg.helpers.coord import Coord
 from hunter_pkg.helpers import direction
 from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
@@ -131,17 +131,14 @@ class DeerAI():
         
         return actions
 
-    def roam(self): # DO NOT MERGE 
+    def roam(self):
         flog.debug("deer is roaming")
         self.deer.recent_actions.append(f"{self.deer.entity_name} is roaming.")
         dist = self.deer.roam_distance
-        dest = coord.Coord()
-        max_x = self.deer.engine.game_map.width - 1
-        max_y = self.deer.engine.game_map.height - 1
-        dest.x = math.clamp(rng.range_int(self.deer.x - dist, self.deer.x + dist + 1), 0, max_x) # DO NOT MERGE add map clamp helper
-        dest.y = math.clamp(rng.range_int(self.deer.y - dist, self.deer.y + dist + 1), 0, max_y)
+        unclamped_x = rng.range_int(self.deer.x - dist, self.deer.x + dist + 1)
+        unclamped_y = rng.range_int(self.deer.y - dist, self.deer.y + dist + 1)
 
-        self.deer.ai.action_queue.append(MovementAction(self.deer, dest))
+        self.deer.ai.action_queue.append(MovementAction(self.deer, self.deer.engine.game_map.clamp_coord(unclamped_x, unclamped_y)))
 
 
 class BuckAI(DeerAI):
@@ -191,11 +188,11 @@ class MovementAction():
     def perform(self):
         if self.deer.alive:
             if not self.path:
-                self.path = deque(pf.get_path(self.deer.engine.game_map.path_map, (self.deer.y, self.deer.x), (self.dest.y, self.dest.x)))
+                self.path = deque(pf.get_path(self.deer.engine.game_map.path_map, self.deer.coord(), self.dest))
 
             if len(self.path) > 0:
-                next_move = self.path.popleft()
-                self.deer.move_to(coord.Coord(next_move[1], next_move[0]))
+                dest = self.path.popleft()
+                self.deer.move_to(dest)
                 self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer, self.path))
 
 
@@ -210,8 +207,8 @@ class PursueAction():
         self.deer.recent_actions.append(f"{self.deer.entity_name} is pursuing {self.target.entity_article} {self.target.entity_name.lower()}.")
 
         if self.deer.alive:
-            dy, dx = pf.path_to_target(self.deer, self.target)
-            self.deer.move(dx, dy)
+            dest = pf.path_to_target(self.deer, self.target)
+            self.deer.move(dest.x, dest.y)
 
             if self.deer.is_target_in_range(self.target):
                 if isinstance(self.target, Buck):
@@ -235,9 +232,7 @@ class FleeAction():
     
     def find_pathable_destination(self, deer, threat):
         path = []
-        deer_coord = coord.Coord(deer.x, deer.y)
-        threat_coord = coord.Coord(threat.x, threat.y)
-        opp_coord = math.get_opposite_coord(deer_coord, threat_coord)
+        opp_coord = math.get_opposite_coord(deer.coord(), threat.coord())
 
         for i in range(self.flee_search_attempts):
             x_jitter = rng.range_int(0, i)
@@ -249,7 +244,7 @@ class FleeAction():
 
             if tile != None:
                 if tile.terrain.walkable:
-                    path = deque(pf.get_path(self.deer.engine.game_map.path_map, (self.deer.y, self.deer.x), (dest_y, dest_x)))
+                    path = deque(pf.get_path(self.deer.engine.game_map.path_map, self.deer.coord(), Coord(dest_x, dest_y)))
 
                 if len(path) > 0:
                     break
@@ -265,8 +260,8 @@ class FleeAction():
                 self.path = self.find_pathable_destination(self.deer, self.threat)
 
             if len(self.path) > 0:
-                next_move = self.path.popleft()
-                self.deer.move_to(coord.Coord(next_move[1], next_move[0]))
+                dest = self.path.popleft()
+                self.deer.move_to(dest)
 
                 if len(self.path) > 0:
                     self.deer.ai.action_queue.append(FleeAction(self.deer, self.threat, self.path))

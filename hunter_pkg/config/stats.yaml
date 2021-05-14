@@ -1,6 +1,5 @@
 settings:
     #seed: 1620506152
-    #seed: 1620785313
     game-speed: 2
     show-fog: true
     show-ui: true
@@ -66,7 +65,7 @@ deer:
         graze-action: 0.003
         attack-action: 0.0012
 doe:
-    leash: 2
+    leash: 3
     roam-distance: 1
     attack-damage: 5
 entity:

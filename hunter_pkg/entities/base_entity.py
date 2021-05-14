@@ -2,6 +2,7 @@ import enum
 
 from hunter_pkg.entities import maps
 
+from hunter_pkg.helpers.coord import Coord
 from hunter_pkg.helpers import math
 from hunter_pkg.helpers import rng
 
@@ -60,6 +61,9 @@ class Entity:
 
         self.x = dest.x
         self.y = dest.y
+
+    def coord(self):
+        return Coord(self.x, self.y)
 
     def select(self):
         self.selected = True
@@ -185,6 +189,9 @@ class StaticEntity():
 
     def requeue(self):
         return True # TODO only if not dead
+
+    def coord(self):
+        return Coord(self.x, self.y)
 
 # for entities that can be hidden using the entity overview panel
 class Hideable():

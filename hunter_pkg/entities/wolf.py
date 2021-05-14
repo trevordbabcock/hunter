@@ -5,6 +5,7 @@ from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
 
+from hunter_pkg.helpers.coord import Coord
 from hunter_pkg.helpers import direction
 from hunter_pkg.helpers import generic as gen
 from hunter_pkg.helpers import math
@@ -94,26 +95,35 @@ class WolfAI():
     def roam(self):
         flog.debug("wolf is roaming")
         dist = stats.Stats.map()["wolf"]["roam-distance"]
-        max_x = self.wolf.engine.game_map.width - 1
-        max_y = self.wolf.engine.game_map.height - 1
-        dest_x = math.clamp(rng.range_int(self.wolf.x - dist, self.wolf.x + dist + 1), 0, max_x)
-        dest_y = math.clamp(rng.range_int(self.wolf.y - dist, self.wolf.y + dist + 1), 0, max_y)
-        dest = self.wolf.engine.game_map.tiles[dest_y][dest_x]
+        unclamped_x = rng.range_int(self.wolf.x - dist, self.wolf.x + dist + 1)
+        unclamped_y = rng.range_int(self.wolf.y - dist, self.wolf.y + dist + 1)
 
-        for action in pf.path_to_dest(self.wolf, [dest.x, dest.y], MovementAction):
-            self.wolf.ai.action_queue.append(action)
+        self.wolf.ai.action_queue.append(MovementAction(self.wolf, self.wolf.engine.game_map.clamp_coord(unclamped_x, unclamped_y)))
 
 
 class MovementAction():
-    def __init__(self, wolf, dy, dx):
+    def __init__(self, wolf, dest, path=None, final_action=None):
         self.wolf = wolf
-        self.dx = dx
-        self.dy = dy
+        self.dest = dest
+        self.path = path
+        self.final_action = final_action
         self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["movement-action"]
     
     def perform(self):
         if self.wolf.alive:
-            self.wolf.move(self.dx, self.dy)
+            if not self.path:
+                self.path = deque(pf.get_path(self.wolf.engine.game_map.path_map, self.wolf.coord(), self.dest))
+
+            if len(self.path) > 0:
+                dest = self.path.popleft()
+                self.wolf.move_to(dest)
+
+                if len(self.path) > 0:
+                    self.wolf.ai.action_queue.append(MovementAction(self.wolf, dest, self.path, self.final_action))
+                elif self.final_action:
+                    self.wolf.ai.action_queue.append(self.final_action)
+            elif self.final_action:
+                self.wolf.ai.action_queue.append(self.final_action)
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
@@ -148,8 +158,8 @@ class PursueAction():
         self.wolf.recent_actions.append(f"Wolf is pursuing {self.target.entity_article} {self.target.entity_name.lower()}.")
 
         if self.wolf.alive:
-            dy, dx = pf.path_to_target(self.wolf, self.target)
-            self.wolf.move(dx, dy)
+            dest = pf.path_to_target(self.wolf, self.target)
+            self.wolf.move(dest.x, dest.y)
 
             if self.wolf.is_target_in_range(self.target):
                 self.wolf.ai.action_queue.append(AttackAction(self.wolf, self.target))
