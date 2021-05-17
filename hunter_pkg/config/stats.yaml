@@ -1,5 +1,5 @@
 settings:
-    #seed: 1620506152
+    #seed: 1621203631
     game-speed: 2
     show-fog: true
     show-ui: true
@@ -45,6 +45,8 @@ deer:
     spawn: 0.00033
     hunger-chance: 0.7
     sleep-in-chance: 0.7
+    aggro-chance: 0.7
+    herd-aggro-chance: 0.3
     max-health: 40
     starting-health: 40
     nutritional-value: 50
@@ -68,6 +70,7 @@ doe:
     leash: 3
     roam-distance: 1
     attack-damage: 5
+    aggro-chance: 0.3
 entity:
     max-recent-actions: 40
     min-recent-actions: 15

@@ -124,10 +124,9 @@ class Hunter(base_entity.IntelligentEntity):
     def rand_health_alert(self):
         return 1 - (self.curr_health / self.max_health)
 
-    def harm(self, damage):
-        super().harm(damage)
+    def harm(self, damage, attacker):
+        super().harm(damage, attacker)
         self.recent_actions.append("Hunter was attacked!")
-        self.attacked = True
 
     def die(self):
         flog.debug("omg hunter died")
@@ -159,8 +158,6 @@ class Hunter(base_entity.IntelligentEntity):
             self.curr_hunger -= stats.Stats.map()["hunter"]["hunger-loss"]
             self.curr_energy -= stats.Stats.map()["hunter"]["energy-loss"]
             self.try_flush_recent_actions()
-    
-
 
     def get_rt_time_alive(self):
         rt_time_alive = timedelta(seconds=round(time() - self.rt_spawn_time))
@@ -386,6 +383,9 @@ class SearchAreaAction(enta.SearchAreaActionBase):
                     self.hunter.recent_actions.append("Hunter is walking to rabbit carcass.")
                     self.hunter.ai.action_queue.append(MovementAction(self.hunter, nearest_entity.coord(), None, EatRabbitAction(self.hunter, nearest_entity)))
         else:
+            # couldn't find threat, so assume no longer attacked
+            self.hunter.attacked = False
+
             for action in self.hunter.ai.roam():
                 self.hunter.ai.action_queue.append(action)
 
@@ -476,7 +476,7 @@ class PursueAction():
 
             if self.target.alive:
                 if self.hunter.is_target_in_range(self.target):
-                    self.hunter.ai.action_queue.append(AttackAction(self.hunter, self.target))
+                    self.hunter.ai.action_queue.append(Action(self.hunter, self.target))
                 else:
                     self.hunter.ai.action_queue.append(PursueAction(self.hunter, self.target))
 
@@ -489,7 +489,7 @@ class AttackAction():
     def perform(self):
         flog.debug("hunter is attacking")
         self.hunter.recent_actions.append("Hunter attacked a wolf.")
-        self.target.harm(self.hunter.attk_dmg)
+        self.target.harm(self.hunter.attk_dmg, self.hunter)
 
         if not self.target.alive:
             self.hunter.recent_actions.append("Hunter killed a wolf!")

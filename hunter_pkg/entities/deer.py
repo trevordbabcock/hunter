@@ -34,6 +34,7 @@ class Deer(base_entity.IntelligentEntity):
         self.vision_distance = stats.Stats.map()["deer"]["vision-distance"]
         self.roam_distance = stats.Stats.map()["deer"]["roam-distance"]
         self.attack_damage = stats.Stats.map()["deer"]["attack-damage"]
+        self.attacked = None
         self.recent_actions = []
         self.hidden = False
 
@@ -43,10 +44,20 @@ class Deer(base_entity.IntelligentEntity):
     def is_tired(self):
         return self.engine.time_of_day == tod.NIGHT
 
+    def harm(self, damage, attacker):
+        super().harm(damage, attacker)
+        self.recent_actions.append(f"{self.entity_name} was attacked!")
+
     def die(self):
         flog.debug("a deer died")
         self.alive = False
         self.char = "x"
+    
+    def is_attacked(self):
+        return self.attacker != None
+    
+    def should_wake_up(self):
+        return self.is_attacked()
 
     def consume(self):
         try:
@@ -81,8 +92,24 @@ class Buck(Deer):
         self.char = "D"
         self.ai = BuckAI(self)
         super().__init__(engine, x, y)
+        self.herd = []
         self.entity_name = "Buck"
         self.entity_article = "the"
+        self.aggro_chance = stats.Stats.map()["deer"]["aggro-chance"]
+        self.herd_aggro_chance = stats.Stats.map()["deer"]["herd-aggro-chance"]
+    
+    def herd_is_attacked(self):
+        for d in self.herd:
+            if d.is_attacked():
+                return True
+    
+    def get_herd_aggro_chance(self):
+        n = 0
+        for d in self.herd:
+            if d.is_attacked():
+                n += 1
+
+        return math.calculate_muliplicative_chance(self.herd_aggro_chance, n)
 
 
 class Doe(Deer):
@@ -94,6 +121,7 @@ class Doe(Deer):
         self.entity_article = "a"
         self.roam_distance = stats.Stats.map()["doe"]["roam-distance"]
         self.attack_damage = stats.Stats.map()["doe"]["attack-damage"]
+        self.aggro_chance = stats.Stats.map()["doe"]["aggro-chance"]
 
 
 class DeerAI():
@@ -116,21 +144,6 @@ class DeerAI():
         
         return cooldown
 
-    def decide_what_to_do(self):
-        actions = []
-        
-        if self.deer.is_hungry():
-            flog.debug("deer is hungry")
-            self.action_queue.append(GrazeAction(self.deer))
-        elif self.deer.is_tired():
-            flog.debug("deer is tired")
-            self.deer.recent_actions.append(f"{self.deer.entity_name} is laying down.")
-            self.deer.ai.action_queue.append(SleepAction(self.deer))
-        else:
-            self.roam()
-        
-        return actions
-
     def roam(self):
         flog.debug("deer is roaming")
         self.deer.recent_actions.append(f"{self.deer.entity_name} is roaming.")
@@ -145,6 +158,35 @@ class BuckAI(DeerAI):
     def __init__(self, buck):
         self.buck = buck
         super().__init__(buck)
+    
+    def decide_what_to_do(self):
+        actions = []
+        
+        if self.deer.is_attacked():
+            if rng.rand() < self.deer.aggro_chance:
+                self.action_queue.append(PursueAction(self.deer, self.deer.attacker))
+            else:
+                self.action_queue.append(FleeAction(self.deer, self.deer.attacker))
+        elif self.deer.herd_is_attacked():
+            if rng.rand() < self.deer.get_herd_aggro_chance():
+                self.deer.recent_actions.append(f"{self.deer.entity_name} is defending his herd!")
+                for d in self.deer.herd:
+                    if d.is_attacked():
+                        self.action_queue.append(PursueAction(self.deer, d.attacker))
+                        break
+            else:
+                self.roam()
+        elif self.deer.is_hungry():
+            flog.debug("deer is hungry")
+            self.action_queue.append(GrazeAction(self.deer))
+        elif self.deer.is_tired():
+            flog.debug("deer is tired")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} is laying down.")
+            self.deer.ai.action_queue.append(SleepAction(self.deer))
+        else:
+            self.roam()
+        
+        return actions
 
 
 class DoeAI(DeerAI):
@@ -215,11 +257,12 @@ class PursueAction():
                     self.deer.recent_actions.append(f"{self.deer.entity_name} has caught up with {self.target.entity_article} {self.target.entity_name.lower()}.")
                     self.deer.ai.action_queue.append(ScanForThreatsAction(self.deer))
                 else:
-                    self.deer.recent_actions.append(f"{self.deer.entity_name} attacked {self.target.entity_article} {self.target.entity_name.lower()}!")
-                    self.deer.ai.action_queue.append(AttackAction(self.deer, self.target))
-                    self.deer.ai.action_queue.append(FleeAction(self.deer, self.target))
+                    if self.target.alive:
+                        self.deer.ai.action_queue.append(AttackAction(self.deer, self.target))
+                        self.deer.ai.action_queue.append(FleeAction(self.deer, self.target))
             else:
-                self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
+                if self.target.alive:
+                    self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
 
 
 class FleeAction():
@@ -287,11 +330,13 @@ class ScanForThreatsAction(enta.SearchAreaActionBase):
 
         if len(living_entities) > 0:
             for e in living_entities:
-                if e.__class__.__name__ in self.threat_classes:
+                if e.alive and e.__class__.__name__ in self.threat_classes:
                     self.deer.ai.action_queue.append(FleeAction(self.deer, e))
                     return
 
                 self.deer.recent_actions.append(f"{self.deer.entity_name} scanned for threats and found none.")
+
+        self.deer.attacker = None
 
         if self.path != None and len(self.path) > 0:
             self.deer.ai.action_queue.append(MovementAction(self.deer, None, self.path)) # dest None is a little dirty
@@ -306,7 +351,11 @@ class AttackAction():
     def perform(self):
         flog.debug("deer is attacking")
         self.deer.recent_actions.append(f"{self.deer.entity_name} is attacking {self.target.entity_article} {self.target.entity_name.lower()}.")
-        self.target.harm(self.deer.attack_damage)
+        self.target.harm(self.deer.attack_damage, self.deer)
+
+        if not self.target.alive:
+            self.deer.recent_actions.append(f"{self.deer.entity_name} killed a wolf!")
+            self.deer.attacked = False
 
 
 class GrazeAction():
@@ -327,7 +376,11 @@ class SleepAction():
     def perform(self):
         sleep_in = rng.rand() < stats.Stats.map()["deer"]["sleep-in-chance"]
 
-        if self.deer.is_tired():
+        if self.deer.should_wake_up():
+            flog.debug("deer woke up after being attacked")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} woke up.")
+            self.deer.asleep = False
+        elif self.deer.is_tired():
             flog.debug("deer is sleeping")
             self.deer.recent_actions.append(f"{self.deer.entity_name} is asleep.")
             self.deer.asleep = True

@@ -39,7 +39,6 @@ class Rabbit(base_entity.IntelligentEntity):
 
     def is_tired(self):
         return self.engine.time_of_day == tod.MORNING or self.engine.time_of_day == tod.AFTERNOON
-    
 
     def die(self):
         flog.debug("a rabbit died")

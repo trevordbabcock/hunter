@@ -34,3 +34,15 @@ def get_opposite_coord(coord1, coord2):
     dy = coord2.y - coord1.y
 
     return coord.Coord(coord1.x - dx, coord1.y - dy)
+
+# as n gets higher total_chance will approach 1 asymptocally
+def calculate_muliplicative_chance(base_chance, n):
+    total_chance = base_chance
+    shrinker_chance = 1 - total_chance
+
+    for i in range(n - 1):    
+        adder_chance = shrinker_chance * base_chance
+        total_chance = total_chance + adder_chance
+        shrinker_chance = 1 - total_chance
+    
+    return total_chance

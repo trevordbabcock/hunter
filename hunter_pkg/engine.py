@@ -172,6 +172,7 @@ class Engine:
                             doe = dr.Doe(self, x, y, buck)
                             self.game_map.tiles[y][x].entities.append(doe)
                             intelligent_entities.append(doe)
+                            buck.herd.append(doe)
                 if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
                     if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
                         berry_bush = bb.BerryBush(self, x, y)

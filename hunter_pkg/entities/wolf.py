@@ -1,6 +1,7 @@
 from collections import deque
 
 from hunter_pkg.entities import base_entity
+from hunter_pkg.entities import deer as dr
 from hunter_pkg.entities import entity_actions as enta
 from hunter_pkg.entities import hunter as htr
 from hunter_pkg.entities import rabbit as rbt
@@ -86,7 +87,7 @@ class WolfAI():
         
         if self.wolf.is_hungry():
             flog.debug("wolf is hungry")
-            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, htr.Hunter]))
+            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, htr.Hunter, dr.Doe, dr.Buck]))
         else:
             self.roam()
         
@@ -176,7 +177,7 @@ class AttackAction():
         if not self.target.hidden:
             flog.debug("wolf is attacking")
             self.wolf.recent_actions.append(f"Wolf is attacking {self.target.entity_article} {self.target.entity_name.lower()}.")
-            self.target.harm(self.wolf.attk_dmg)
+            self.target.harm(self.wolf.attk_dmg, self.wolf)
 
             if not self.target.alive:
                 if isinstance(self.target, rbt.Rabbit):

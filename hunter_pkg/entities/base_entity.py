@@ -88,6 +88,7 @@ class IntelligentEntity(Entity):
         self.recent_actions = []
         self.max_recent_actions = stats.Stats.map()["entity"]["max-recent-actions"]
         self.min_recent_actions = stats.Stats.map()["entity"]["min-recent-actions"]
+        self.attacker = None
 
     def requeue(self):
         return self.alive
@@ -95,8 +96,9 @@ class IntelligentEntity(Entity):
     def eat(self, entity):
         raise NotImplementedError
 
-    def harm(self, damage):
+    def harm(self, damage, attacker):
         self.curr_health -= damage
+        self.attacker = attacker
 
     def heal(self, healing):
         self.curr_health += healing
