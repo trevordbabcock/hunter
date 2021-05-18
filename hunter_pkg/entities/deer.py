@@ -272,14 +272,18 @@ class FleeAction():
         self.path = path
         self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["flee-action"]
         self.flee_search_attempts = stats.Stats.map()["deer"]["flee-search-attempts"]
+        self.flee_jitter_multiplier = stats.Stats.map()["deer"]["flee-jitter-multiplier"]
     
     def find_pathable_destination(self, deer, threat):
         path = []
         opp_coord = math.get_opposite_coord(deer.coord(), threat.coord())
 
         for i in range(self.flee_search_attempts):
-            x_jitter = rng.range_int(0, i)
-            y_jitter = rng.range_int(0, i)
+            jitter_muliplier = self.flee_jitter_multiplier
+            jitter_max = i * jitter_muliplier
+            jitter_min = -(i * jitter_muliplier)
+            x_jitter = rng.range_int(jitter_min, jitter_max)
+            y_jitter = rng.range_int(jitter_min, jitter_max)
             dest_x = opp_coord.x + x_jitter
             dest_y = opp_coord.y + y_jitter
 
@@ -354,7 +358,7 @@ class AttackAction():
         self.target.harm(self.deer.attack_damage, self.deer)
 
         if not self.target.alive:
-            self.deer.recent_actions.append(f"{self.deer.entity_name} killed a wolf!")
+            self.deer.recent_actions.append(f"{self.deer.entity_name} killed {self.target.entity_article} {self.target.entity_name.lower()}!")
             self.deer.attacked = False
 
 

@@ -1,5 +1,5 @@
 settings:
-    #seed: 1621203631
+    #seed: 1621311183
     game-speed: 2
     show-fog: true
     show-ui: true
@@ -49,7 +49,7 @@ deer:
     herd-aggro-chance: 0.3
     max-health: 40
     starting-health: 40
-    nutritional-value: 50
+    nutritional-value: 75
     roam-distance: 3
     attack-damage: 13
     vision-distance:
@@ -57,7 +57,8 @@ deer:
         afternoon: 5
         evening: 5
         night: 4
-    flee-search-attempts: 3
+    flee-search-attempts: 4
+    flee-jitter-multiplier: 2
     action-cooldowns:
         default: 0.0015
         movement-action: 0.0011
@@ -125,7 +126,7 @@ rabbit:
     sleep-in-chance: 0.7
     max-health: 5
     starting-health: 5
-    nutritional-value: 25
+    nutritional-value: 15
     roam-distance: 3
     vision-distance:
         morning: 1
@@ -138,8 +139,24 @@ rabbit:
         graze-action: 0.002
 wolf:
     spawn: 0.00027
+    max-hunger: 75
     max-health: 30
+    max-energy: 50
+    starting-hunger: 25
     starting-health: 30
+    starting-energy: 50
+    hunger-loss: 0.1
+    energy-loss: 0.20
+    starvation-health-loss: 0.3
+    sleep-deprivation-health-loss: 0.1
+    sleep-deprivation-chance-to-pass-out: 0.07
+    sleep-energy-gain: 1.6
+    sleep-health-gain: 0.4
+    sleep-in-chance: 0.2
+    hunger-threshold: 30
+    tired-threshold: 15
+    nap-chance: 0.15
+    need-a-snack-chance: 0.2
     roam-distance: 12
     attack-damage: 7
     vision-distance:

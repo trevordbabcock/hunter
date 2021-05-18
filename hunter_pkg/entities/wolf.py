@@ -18,6 +18,7 @@ from hunter_pkg import flogging
 from hunter_pkg import log_level
 from hunter_pkg import pathfinder as pf
 from hunter_pkg import stats
+from hunter_pkg import status_effects as stfx
 from hunter_pkg import terrain as trrn
 from hunter_pkg import vision_map as vsmap
 
@@ -29,15 +30,59 @@ class Wolf(base_entity.IntelligentEntity):
         super().__init__(engine, x, y, "W", colors.white(), colors.brown(), WolfAI(self), "Wolf")
         self.alive = True
         self.asleep = False
+        self.max_hunger = stats.Stats.map()["wolf"]["max-hunger"]
         self.max_health = stats.Stats.map()["wolf"]["max-health"]
+        self.max_energy = stats.Stats.map()["wolf"]["max-energy"]
+        self.curr_hunger = stats.Stats.map()["wolf"]["starting-hunger"]
         self.curr_health = stats.Stats.map()["wolf"]["starting-health"]
+        self.curr_energy = stats.Stats.map()["wolf"]["starting-energy"]
+        self.curr_health = stats.Stats.map()["wolf"]["starting-health"]
+        self.hunger_loss = stats.Stats.map()["wolf"]["hunger-loss"]
+        self.energy_loss = stats.Stats.map()["wolf"]["energy-loss"]
         self.vision_distance = stats.Stats.map()["wolf"]["vision-distance"]
         self.attk_dmg = stats.Stats.map()["wolf"]["attack-damage"]
+        self.hunger_threshold = stats.Stats.map()["wolf"]["hunger-threshold"]
+        self.tired_threshold = stats.Stats.map()["wolf"]["tired-threshold"]
+        self.need_a_snack_chance = stats.Stats.map()["wolf"]["need-a-snack-chance"]
+        self.attacker = None
         self.recent_actions = []
         self.hidden = False
 
+    def eat(self, entity):
+        flog.debug("wolf ate something")
+        self.curr_hunger += entity.nutritional_value
+        entity.consume()
+
     def is_hungry(self):
-        return True
+        return self.curr_hunger < stats.Stats.map()["wolf"]["hunger-threshold"] or rng.rand() < self.need_a_snack_chance
+
+    def is_tired(self):
+        return self.curr_energy < stats.Stats.map()["wolf"]["tired-threshold"]
+
+    def should_wake_up(self):
+        if self.is_attacked():
+            return True
+        else:
+            chance_to_wake_up = 0
+
+            if self.is_affected_by(stfx.Starvation):
+                chance_to_wake_up += self.rand_health_alert()
+
+            roll = rng.rand()
+
+            # flog.debug("---chance to wake up---")
+            # flog.debug(f"health: {self.curr_health}")
+            # flog.debug(f"chance: {chance_to_wake_up}")
+            # flog.debug(f"roll: {roll})")
+            # flog.debug(f"res: {chance_to_wake_up > roll}")
+
+            return roll < chance_to_wake_up
+
+    def is_attacked(self):
+        return self.attacker != None
+
+    def rand_health_alert(self):
+        return 1 - (self.curr_health / self.max_health)
 
     def die(self):
         flog.debug("a wolf died")
@@ -52,13 +97,38 @@ class Wolf(base_entity.IntelligentEntity):
         
         info.extend([
             f"Coord: ({self.x},{self.y})",
-            f"Hlth: {self.curr_health}/{self.max_health}",
+            "Hlth {:02.0f}/{}".format(self.curr_health, self.max_health),
+            "Hngr {:02.0f}/{}".format(self.curr_hunger, self.max_hunger),
+            "Nrgy {:02.0f}/{}".format(self.curr_energy, self.max_energy),
         ])
 
         return info
 
     def progress(self):
-        self.try_flush_recent_actions()
+        if self.alive:
+            if self.is_affected_by(stfx.Starvation):
+                self.curr_health -= stats.Stats.map()["wolf"]["starvation-health-loss"]
+                if not self.alive:
+                    self.recent_actions.append("Wolf died of starvation!")
+            if self.is_affected_by(stfx.SleepDeprivation):
+                self.curr_health -= stats.Stats.map()["wolf"]["sleep-deprivation-health-loss"]
+                chance_to_pass_out = self.rand_health_alert() * stats.Stats.map()["wolf"]["sleep-deprivation-chance-to-pass-out"]
+                roll = rng.rand()
+
+                # flog.debug("---chance to pass out---")
+                # flog.debug(f"health: {self.curr_health}")
+                # flog.debug(f"chance: {chance_to_pass_out}")
+                # flog.debug(f"roll: {roll}")
+                # flog.debug(f"res: {chance_to_pass_out > roll}")
+
+                if chance_to_pass_out > roll and not self.asleep:
+                    self.recent_actions.append("Wolf passed out from sleep deprivation!")
+                    self.ai.clear_action_queue()
+                    self.ai.action_queue.append(SleepAction(self))
+
+            self.curr_hunger -= stats.Stats.map()["wolf"]["hunger-loss"]
+            self.curr_energy -= stats.Stats.map()["wolf"]["energy-loss"]
+            self.try_flush_recent_actions()
 
 
 class WolfAI():
@@ -66,6 +136,9 @@ class WolfAI():
         self.wolf = wolf
         self.action_queue = deque()
         self.default_cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["default"]
+
+    def clear_action_queue(self):
+        self.action_queue = deque()
 
     def perform(self):
         cooldown = self.default_cooldown
@@ -87,9 +160,17 @@ class WolfAI():
         
         if self.wolf.is_hungry():
             flog.debug("wolf is hungry")
-            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, htr.Hunter, dr.Doe, dr.Buck]))
+            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, dr.Doe, dr.Buck]))
+        elif self.wolf.is_tired():
+            flog.debug("wolf is tired")
+            self.action_queue.append(SleepAction(self.wolf))
         else:
-            self.roam()
+            if rng.rand() < stats.Stats.map()["wolf"]["nap-chance"]:
+                flog.debug("wolf is napping")
+                self.wolf.recent_actions.append(f"Wolf is laying down for a nap.")
+                self.action_queue.append(SleepAction(self.wolf))
+            else:
+                self.roam()
         
         return actions
 
@@ -181,18 +262,41 @@ class AttackAction():
 
             if not self.target.alive:
                 if isinstance(self.target, rbt.Rabbit):
-                    self.wolf.ai.action_queue.append(EatRabbitAction(self.wolf, self.target))
+                    self.wolf.ai.action_queue.append(EatAction(self.wolf, self.target))
         else:
             flog.debug("wolf can't attack hidden target")
 
-
-class EatRabbitAction():
-    def __init__(self, wolf, rabbit):
+# DO NOT MERGE fix eat action
+class EatAction():
+    def __init__(self, wolf, entity):
         self.wolf = wolf
-        self.rabbit = rabbit
+        self.entity = entity
 
     def perform(self):
-        flog.debug("wolf is eating a rabbit")
-        self.wolf.recent_actions.append(f"Wolf is eating a rabbit.")
-        self.rabbit.consume()
-            
+        flog.debug(f"wolf is eating a {self.entity.entity_name}")
+        self.wolf.recent_actions.append(f"Wolf is eating a {self.entity.entity_name}.")
+        self.wolf.eat(self.entity)
+
+
+class SleepAction():
+    def __init__(self, wolf):
+        self.wolf = wolf
+
+    def perform(self):
+        self.wolf.curr_energy += stats.Stats.map()["wolf"]["sleep-energy-gain"]
+        self.wolf.curr_health += stats.Stats.map()["wolf"]["sleep-health-gain"]
+        sleep_in = rng.rand() < stats.Stats.map()["wolf"]["sleep-in-chance"]
+
+        if self.wolf.should_wake_up():
+            flog.debug("wolf woke up after being attacked")
+            self.wolf.recent_actions.append(f"{self.wolf.entity_name} woke up.")
+            self.wolf.asleep = False
+        elif self.wolf.curr_energy < (self.wolf.max_energy - stats.Stats.map()["wolf"]["energy-loss"]):
+            flog.debug("wolf is sleeping")
+            self.wolf.recent_actions.append(f"{self.wolf.entity_name} is asleep.")
+            self.wolf.asleep = True
+            self.wolf.ai.action_queue.append(SleepAction(self.wolf))
+        else:
+            flog.debug("wolf woke up")
+            self.wolf.recent_actions.append(f"{self.wolf.entity_name} woke up.")
+            self.wolf.asleep = False
