@@ -185,7 +185,8 @@ class Engine:
     def get_entity_counts(self):
         counts = {
             bb.BerryBush: self.berry_bush_count,
-            dr.Deer: 0,
+            dr.Buck: 0,
+            dr.Doe: 0,
             htr.Hunter: 0,
             wlf.Wolf: 0,
             rbt.Rabbit: 0,

@@ -63,12 +63,17 @@ class Panel():
         for i in range(len(elements)):
             e = elements[i]
 
-            if(isinstance(e, ui_elem.Button) or isinstance(e, ui_elem.TextOnlyButton)):
+            if(isinstance(e, ui_elem.Button)):
                 x = self.x + floor((self.width - e.width)/2)
                 y = self.y + self.get_cumulative_elements_height(elements, i)
 
                 e.x = x
                 e.y = y
+
+                self.engine.ui_collision_layer.create_hitbox(e, coord.Coord(e.x, e.y), coord.Coord(e.x + e.width, e.y + e.height))
+            elif(isinstance(e, ui_elem.TextOnlyButton)):
+                e.x = self.x
+                e.y = self.y + self.get_cumulative_elements_height(elements, i)
 
                 self.engine.ui_collision_layer.create_hitbox(e, coord.Coord(e.x, e.y), coord.Coord(e.x + e.width, e.y + e.height))
 
@@ -350,7 +355,8 @@ class EntityOverviewPanel(Panel):
                 ui_elem.HeaderFooter(),
                 ui_elem.CenteredText(f"Entities"),
                 ui_elem.CenteredText(f"Show / Hide"),
-                ui_elem.Break(2),
+                ui_elem.Break(),
+                ui_elem.Break(), # TODO fix bug with Break(2) causing height/border problems
                 ui_elem.ToggleableTextOnlyButton("entity-hunter-btn", f" {counts[htr.Hunter]} Hunter", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-rabbit-btn", f" {counts[rbt.Rabbit]} Rabbits", self.engine, key),
                 ui_elem.ToggleableTextOnlyButton("entity-wolf-btn", f" {counts[wlf.Wolf]}  Wolves", self.engine, key),
