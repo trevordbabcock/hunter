@@ -1,5 +1,5 @@
 settings:
-    #seed: 1621433209
+    #seed: 1621566244
     game-speed: 2
     show-fog: true
     show-ui: true
@@ -145,6 +145,7 @@ wolf:
     starting-hunger: 25
     starting-health: 30
     starting-energy: 50
+    critical-health-threshold: 15
     hunger-loss: 0.1
     energy-loss: 0.20
     starvation-health-loss: 0.3
@@ -164,8 +165,11 @@ wolf:
         afternoon: 5
         evening: 4
         night: 3
+    flee-search-attempts: 4
+    flee-jitter-multiplier: 2
     action-cooldowns:
         default: 0.0015
         movement-action: 0.0016
         pursue-action: 0.001
-        search-area-action: 0.0016
+        flee-action: 0.001
+        search-area-action: 0.0001

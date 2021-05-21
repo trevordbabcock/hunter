@@ -42,6 +42,7 @@ class Rabbit(base_entity.IntelligentEntity):
 
     def die(self):
         flog.debug("a rabbit died")
+        self.recent_actions.append("Rabbit died!")
         self.alive = False
         self.char = "x"
 

@@ -37,6 +37,7 @@ class Wolf(base_entity.IntelligentEntity):
         self.curr_health = stats.Stats.map()["wolf"]["starting-health"]
         self.curr_energy = stats.Stats.map()["wolf"]["starting-energy"]
         self.curr_health = stats.Stats.map()["wolf"]["starting-health"]
+        self.critical_health_threshold = stats.Stats.map()["wolf"]["critical-health-threshold"]
         self.hunger_loss = stats.Stats.map()["wolf"]["hunger-loss"]
         self.energy_loss = stats.Stats.map()["wolf"]["energy-loss"]
         self.vision_distance = stats.Stats.map()["wolf"]["vision-distance"]
@@ -81,11 +82,15 @@ class Wolf(base_entity.IntelligentEntity):
     def is_attacked(self):
         return self.attacker != None
 
+    def is_health_critical(self):
+        return self.curr_health < self.critical_health_threshold
+
     def rand_health_alert(self):
         return 1 - (self.curr_health / self.max_health)
 
     def die(self):
         flog.debug("a wolf died")
+        self.recent_actions.append("Wolf died!")
         self.alive = False
         self.char = "x"
     
@@ -160,7 +165,7 @@ class WolfAI():
         
         if self.wolf.is_hungry():
             flog.debug("wolf is hungry")
-            self.action_queue.append(SearchAreaAction(self.wolf, [rbt.Rabbit, dr.Doe, dr.Buck]))
+            self.action_queue.append(SearchAreaAction(self.wolf))
         elif self.wolf.is_tired():
             flog.debug("wolf is tired")
             self.action_queue.append(SleepAction(self.wolf))
@@ -209,24 +214,36 @@ class MovementAction():
 
 
 class SearchAreaAction(enta.SearchAreaActionBase):
-    def __init__(self, wolf, search_for_classes):
+    def __init__(self, wolf):
         self.wolf = wolf
         self.search_radius = self.wolf.vision_distance[self.wolf.engine.time_of_day]
-        self.search_for_classes = [c.__name__ for c in search_for_classes]
+        self.threat_classes = [htr.Hunter.__name__]
+        self.critical_health_threat_classes = [htr.Hunter.__name__, dr.Buck.__name__, dr.Doe.__name__]
+        self.prey_classes = [dr.Buck.__name__, dr.Doe.__name__, rbt.Rabbit.__name__]
+        self.all_classes = list(set(self.threat_classes + self.critical_health_threat_classes + self.prey_classes))
         self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["search-area-action"]
-    
+
     def perform(self):
-        flog.debug("wolf is roaming")
-        self.wolf.recent_actions.append(f"Wolf is roaming.")
         search_area = self.get_search_area(self.wolf, self.search_radius, vsmap.circle)
-        found_entities = self.find_entities(search_area, self.search_for_classes)
+        found_entities = self.find_entities(search_area, self.all_classes)
         living_entities = [entity for entity in found_entities if entity.alive]
+        threat_classes = self.critical_health_threat_classes if self.wolf.is_health_critical() else self.threat_classes
 
         if len(living_entities) > 0:
-            target = rng.pick_rand(living_entities) # TODO should find nearest
-            self.wolf.ai.action_queue.append(PursueAction(self.wolf, target))
-        else:
-            self.wolf.ai.roam()
+            for e in living_entities:
+                if e.__class__.__name__ in threat_classes:
+                    self.wolf.ai.action_queue.append(FleeAction(self.wolf, e))
+                    return
+
+            for e in living_entities:
+                if e.__class__.__name__ in self.prey_classes:
+                    self.wolf.ai.action_queue.append(PursueAction(self.wolf, e))
+                    return
+
+                self.wolf.recent_actions.append(f"{self.wolf.entity_name} searched the area for prey and threats and found none.")
+
+        self.wolf.attacker = None
+        self.wolf.ai.roam()
 
 
 class PursueAction():
@@ -249,6 +266,36 @@ class PursueAction():
                 self.wolf.ai.action_queue.append(PursueAction(self.wolf, self.target))
 
 
+class FleeAction():
+    def __init__(self, wolf, threat, path=None):
+        self.wolf = wolf
+        self.threat = threat
+        self.path = path
+        self.cooldown = stats.Stats.map()["wolf"]["action-cooldowns"]["flee-action"]
+        self.flee_search_attempts = stats.Stats.map()["wolf"]["flee-search-attempts"]
+        self.flee_jitter_multiplier = stats.Stats.map()["wolf"]["flee-jitter-multiplier"]
+
+    def perform(self):
+        flog.debug("wolf is fleeing")
+        self.wolf.recent_actions.append(f"{self.wolf.entity_name} is fleeing from {self.threat.entity_article} {self.threat.entity_name.lower()}.")
+
+        if self.wolf.alive:
+            if not self.path:
+                self.path = pf.find_flee_path(self.wolf.engine.game_map, self.wolf.coord(), self.threat.coord(), self.flee_search_attempts, self.flee_jitter_multiplier)
+
+            if len(self.path) > 0:
+                dest = self.path.popleft()
+                self.wolf.move_to(dest)
+
+                if len(self.path) > 0:
+                    self.wolf.ai.action_queue.append(FleeAction(self.wolf, self.threat, self.path))
+                else:
+                    self.wolf.ai.action_queue.append(SearchAreaAction(self.wolf))
+            else:
+                self.wolf.recent_actions.append(f"{self.wolf.entity_name} feels trapped and is turning to fight {self.threat.entity_article} {self.threat.entity_name.lower()}!")
+                self.wolf.ai.action_queue.append(PursueAction(self.wolf, self.threat))
+
+
 class AttackAction():
     def __init__(self, wolf, target):
         self.wolf = wolf
@@ -261,7 +308,7 @@ class AttackAction():
             self.target.harm(self.wolf.attk_dmg, self.wolf)
 
             if not self.target.alive:
-                if isinstance(self.target, rbt.Rabbit):
+                if isinstance(self.target, rbt.Rabbit) or isinstance(self.target, dr.Deer):
                     self.wolf.ai.action_queue.append(EatAction(self.wolf, self.target))
         else:
             flog.debug("wolf can't attack hidden target")

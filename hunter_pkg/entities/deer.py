@@ -50,6 +50,7 @@ class Deer(base_entity.IntelligentEntity):
 
     def die(self):
         flog.debug("a deer died")
+        self.recent_actions.append(f"{self.entity_name} died!")
         self.alive = False
         self.char = "x"
     
@@ -273,30 +274,6 @@ class FleeAction():
         self.cooldown = stats.Stats.map()["deer"]["action-cooldowns"]["flee-action"]
         self.flee_search_attempts = stats.Stats.map()["deer"]["flee-search-attempts"]
         self.flee_jitter_multiplier = stats.Stats.map()["deer"]["flee-jitter-multiplier"]
-    
-    def find_pathable_destination(self, deer, threat):
-        path = []
-        opp_coord = math.get_opposite_coord(deer.coord(), threat.coord())
-
-        for i in range(self.flee_search_attempts):
-            jitter_muliplier = self.flee_jitter_multiplier
-            jitter_max = i * jitter_muliplier
-            jitter_min = -(i * jitter_muliplier)
-            x_jitter = rng.range_int(jitter_min, jitter_max)
-            y_jitter = rng.range_int(jitter_min, jitter_max)
-            dest_x = opp_coord.x + x_jitter
-            dest_y = opp_coord.y + y_jitter
-
-            tile = self.deer.engine.game_map.get_tile(opp_coord.x + x_jitter, opp_coord.y + y_jitter)
-
-            if tile != None:
-                if tile.terrain.walkable:
-                    path = deque(pf.get_path(self.deer.engine.game_map.path_map, self.deer.coord(), Coord(dest_x, dest_y)))
-
-                if len(path) > 0:
-                    break
-
-        return path
 
     def perform(self):
         flog.debug("deer is fleeing")
@@ -304,7 +281,7 @@ class FleeAction():
 
         if self.deer.alive:
             if not self.path:
-                self.path = self.find_pathable_destination(self.deer, self.threat)
+                self.path = pf.find_flee_path(self.deer.engine.game_map, self.deer.coord(), self.threat.coord(), self.flee_search_attempts, self.flee_jitter_multiplier)
 
             if len(self.path) > 0:
                 dest = self.path.popleft()
