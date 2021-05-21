@@ -51,7 +51,8 @@ deer:
     starting-health: 40
     nutritional-value: 75
     roam-distance: 3
-    attack-damage: 13
+    attack-damage: 9
+    stop-pursuit-chance: 0.05
     vision-distance:
         morning: 5
         afternoon: 5
@@ -66,11 +67,11 @@ deer:
         flee-action: 0.0008
         scan-for-threats-action: 0.0001
         graze-action: 0.003
-        attack-action: 0.0012
+        attack-action: 0.0014
 doe:
     leash: 3
     roam-distance: 1
-    attack-damage: 5
+    attack-damage: 3
     aggro-chance: 0.3
 entity:
     max-recent-actions: 40
@@ -159,7 +160,7 @@ wolf:
     nap-chance: 0.15
     need-a-snack-chance: 0.2
     roam-distance: 12
-    attack-damage: 7
+    attack-damage: 12
     vision-distance:
         morning: 5
         afternoon: 5

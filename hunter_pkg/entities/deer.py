@@ -34,6 +34,7 @@ class Deer(base_entity.IntelligentEntity):
         self.vision_distance = stats.Stats.map()["deer"]["vision-distance"]
         self.roam_distance = stats.Stats.map()["deer"]["roam-distance"]
         self.attack_damage = stats.Stats.map()["deer"]["attack-damage"]
+        self.stop_pursuit_chance = stats.Stats.map()["deer"]["stop-pursuit-chance"]
         self.attacked = None
         self.recent_actions = []
         self.hidden = False
@@ -59,6 +60,9 @@ class Deer(base_entity.IntelligentEntity):
     
     def should_wake_up(self):
         return self.is_attacked()
+
+    def should_maintain_pursuit(self):
+        return rng.rand() > self.stop_pursuit_chance
 
     def consume(self):
         try:
@@ -263,7 +267,13 @@ class PursueAction():
                         self.deer.ai.action_queue.append(FleeAction(self.deer, self.target))
             else:
                 if self.target.alive:
-                    self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
+                    if isinstance(self.target, Buck):
+                        self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
+                    elif self.deer.should_maintain_pursuit():
+                        self.deer.ai.action_queue.append(PursueAction(self.deer, self.target))
+                    else:
+                        flog.debug("deer is giving up pursuit")
+                        self.deer.recent_actions.append(f"{self.deer.entity_name} is giving up pursuit of {self.target.entity_article} {self.target.entity_name.lower()}.")
 
 
 class FleeAction():
