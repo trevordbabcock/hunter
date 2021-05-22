@@ -12,7 +12,7 @@
   * ~~**v1.0** - add wolves, hunter vs wolf combat~~
 * **v1 - playability, ui, and technical improvements**
   - ~~**v1.1** - add escape menu, entity selection, entity overview panel, pausing~~
-  - **v1.2** - add deer, improve wolf behavior
+  - ~~**v1.2** - add deer, improve wolf behavior~~
   - **v1.3** - add scrolling, improve map procgen, bigger map
   - **v1.4** - add hunter foraging and storing food, hunting deer
   - **v1.5** - add saving/loading game
