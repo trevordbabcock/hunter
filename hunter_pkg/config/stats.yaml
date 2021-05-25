@@ -1,6 +1,8 @@
 settings:
     #seed: 1621566244
     game-speed: 2
+    map-height: 100
+    map-width: 150
     show-fog: true
     show-ui: true
     show-entity-overview: false

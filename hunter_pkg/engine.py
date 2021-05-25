@@ -212,7 +212,8 @@ class Engine:
         self.hover_panel = ui_panel.HoverPanel(x=1, y=17, height=20, width=17, engine=self)
 
     def init_selection_panel(self):
-        self.selection_panel = ui_panel.SelectionPanel(x=1, y=37, height=37, width=17, engine=self)
+        height = self.game_map.height - self.stats_panel.height - self.hover_panel.height - 2
+        self.selection_panel = ui_panel.SelectionPanel(x=1, y=37, height=height, width=17, engine=self)
 
     def init_action_log_panel(self):
         x = 20
@@ -239,7 +240,7 @@ class Engine:
     def init_entity_overview_panel(self):
         width = 19
         x = self.game_map.width - width - 2
-        self.entity_overview_panel = ui_panel.EntityOverviewPanel(x=x, y=1, height=58, width=width, engine=self)
+        self.entity_overview_panel = ui_panel.EntityOverviewPanel(x=x, y=1, height=16, width=width, engine=self)
 
     # TODO dedup this (duplicated in hunter.py)
     def init_fog_reveal(self):

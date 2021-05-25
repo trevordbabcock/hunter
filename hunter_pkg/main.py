@@ -32,8 +32,8 @@ def main() -> None:
     stats.Stats.map(stats_file)
     seconds_per_frame = 0.016
 
-    width = 120
-    height = 75
+    width = stats.Stats.map()["settings"]["map-width"]
+    height = stats.Stats.map()["settings"]["map-height"]
     screen_width = width
     screen_height = height
     map_width = width
