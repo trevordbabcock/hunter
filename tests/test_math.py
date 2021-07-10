@@ -6,12 +6,6 @@ from hunter_pkg.helpers import math
 
 
 class GetOppositeCoordTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_get_opposite_coord(self):
         coord = math.get_opposite_coord(c.Coord(1, 1), c.Coord(3, 2))
         assert coord.x == -1
@@ -34,12 +28,6 @@ class GetOppositeCoordTestCase(unittest.TestCase):
         assert coord.y == -5
 
 class CalculateMuliplicativeChanceTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_get_opposite_coord(self):
         chance = math.calculate_muliplicative_chance(0.3, 1)
         assert chance == 0.3
