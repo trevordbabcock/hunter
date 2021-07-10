@@ -4,12 +4,6 @@ from hunter_pkg import vision_map as vsmap
 
 
 class VisionMapTestCase(unittest.TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
     def test_circle(self):
         actual = vsmap.circle(1)
         expected = [
