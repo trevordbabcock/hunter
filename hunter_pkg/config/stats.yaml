@@ -3,6 +3,9 @@ settings:
     game-speed: 2
     map-height: 100
     map-width: 150
+    screen-height: 50
+    screen-width: 75
+    screen-starting-pos: [37, 25]
     show-fog: true
     show-ui: true
     show-entity-overview: false

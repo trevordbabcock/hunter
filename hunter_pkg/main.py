@@ -10,6 +10,7 @@ from hunter_pkg.entities import camp as cp
 from hunter_pkg.entities import hunter as htr
 
 from hunter_pkg.helpers import rng
+from hunter_pkg.helpers.coord import Coord
 
 from hunter_pkg import colors
 from hunter_pkg import engine as eng
@@ -18,6 +19,7 @@ from hunter_pkg import flogging
 from hunter_pkg import game_map as gm
 from hunter_pkg import input_handlers
 from hunter_pkg import log_level
+from hunter_pkg import screen as scrn
 from hunter_pkg import stats
 
 
@@ -32,12 +34,13 @@ def main() -> None:
     stats.Stats.map(stats_file)
     seconds_per_frame = 0.016
 
-    width = stats.Stats.map()["settings"]["map-width"]
-    height = stats.Stats.map()["settings"]["map-height"]
-    screen_width = width
-    screen_height = height
-    map_width = width
-    map_height = height
+    pos = stats.Stats.map()["settings"]["screen-starting-pos"]
+    screen_pos = Coord(pos[0], pos[1])
+    screen_width = stats.Stats.map()["settings"]["screen-height"]
+    screen_height = stats.Stats.map()["settings"]["screen-height"]
+    map_width = stats.Stats.map()["settings"]["map-width"]
+    map_height = stats.Stats.map()["settings"]["map-height"]
+    
 
     tileset = tcod.tileset.load_tilesheet(
         "resources/img/dejavu10x10_gs_tc.png", 32, 8, tcod.tileset.CHARMAP_TCOD
@@ -45,7 +48,8 @@ def main() -> None:
 
     input_handler = input_handlers.InputHandler()
     game_map = gm.GameMap(map_width, map_height, seed, stats.Stats.map()["settings"]["show-fog"])
-    engine = eng.Engine(intelligent_entities=[], static_entities=[], input_handler=input_handler, game_map=game_map)
+    screen = scrn.Screen(screen_width, screen_height, screen_pos)
+    engine = eng.Engine([], [], input_handler, game_map, screen)
 
     x, y = engine.find_hunter_spawn_point()
     

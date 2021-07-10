@@ -39,7 +39,7 @@ from hunter_pkg import vision_map as vsmap
 flog = flogging.Flogging.get(__file__, log_level.LogLevel.get(__file__))
 
 class Engine:
-    def __init__(self, intelligent_entities, static_entities, input_handler, game_map):
+    def __init__(self, intelligent_entities, static_entities, input_handler, game_map, screen):
         self.settings = stats.Stats.map()["settings"]
         self.paused = False
         self.game_speed = self.settings["game-speed"]
@@ -48,6 +48,7 @@ class Engine:
         self.static_entities = static_entities
         self.input_handler = input_handler
         self.game_map = game_map
+        self.screen = screen
         self.entropy_event_queue = deque()
         self.ai_event_queue = deque()
         self.hunter = None
@@ -150,35 +151,35 @@ class Engine:
         # self.game_map.tiles[20][80].entities.append(wolf)
         # intelligent_entities.append(wolf)
 
-        for y, row in enumerate(self.game_map.tiles):
-            for x, tile in enumerate(row):
-                if tile.terrain.walkable:
-                    if rng.rand() < stats.Stats.map()["rabbit"]["spawn"]:
-                        burrow = rbt.Burrow(x, y)
-                        rabbit = rbt.Rabbit(self, x, y)
-                        rabbit.burrow = burrow
-                        self.game_map.tiles[y][x].add_entities([burrow, rabbit])
-                        intelligent_entities.append(rabbit)
-                    if rng.rand() < stats.Stats.map()["wolf"]["spawn"]:
-                        wolf = wlf.Wolf(self, x, y)
-                        self.game_map.tiles[y][x].entities.append(wolf)
-                        intelligent_entities.append(wolf)
-                    if rng.rand() < stats.Stats.map()["deer"]["spawn"]:
-                        buck = dr.Buck(self, x, y)
-                        self.game_map.tiles[y][x].entities.append(buck)
-                        intelligent_entities.append(buck)
+        # for y, row in enumerate(self.game_map.tiles):
+        #     for x, tile in enumerate(row):
+        #         if tile.terrain.walkable:
+        #             if rng.rand() < stats.Stats.map()["rabbit"]["spawn"]:
+        #                 burrow = rbt.Burrow(x, y)
+        #                 rabbit = rbt.Rabbit(self, x, y)
+        #                 rabbit.burrow = burrow
+        #                 self.game_map.tiles[y][x].add_entities([burrow, rabbit])
+        #                 intelligent_entities.append(rabbit)
+        #             if rng.rand() < stats.Stats.map()["wolf"]["spawn"]:
+        #                 wolf = wlf.Wolf(self, x, y)
+        #                 self.game_map.tiles[y][x].entities.append(wolf)
+        #                 intelligent_entities.append(wolf)
+        #             if rng.rand() < stats.Stats.map()["deer"]["spawn"]:
+        #                 buck = dr.Buck(self, x, y)
+        #                 self.game_map.tiles[y][x].entities.append(buck)
+        #                 intelligent_entities.append(buck)
 
-                        for i in range(rng.range_int(1, 4)):
-                            doe = dr.Doe(self, x, y, buck)
-                            self.game_map.tiles[y][x].entities.append(doe)
-                            intelligent_entities.append(doe)
-                            buck.herd.append(doe)
-                if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
-                    if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
-                        berry_bush = bb.BerryBush(self, x, y)
-                        self.game_map.tiles[y][x].entities.append(berry_bush)
-                        static_entities.append(berry_bush)
-                        self.berry_bush_count += 1
+        #                 for i in range(rng.range_int(1, 4)):
+        #                     doe = dr.Doe(self, x, y, buck)
+        #                     self.game_map.tiles[y][x].entities.append(doe)
+        #                     intelligent_entities.append(doe)
+        #                     buck.herd.append(doe)
+        #         if isinstance(tile.terrain, terrain.Grass) or isinstance(tile.terrain, terrain.Forest):
+        #             if rng.rand() < stats.Stats.map()["berry-bush"]["spawn"]:
+        #                 berry_bush = bb.BerryBush(self, x, y)
+        #                 self.game_map.tiles[y][x].entities.append(berry_bush)
+        #                 static_entities.append(berry_bush)
+        #                 self.berry_bush_count += 1
 
         return intelligent_entities, static_entities
 
@@ -285,29 +286,31 @@ class Engine:
     def render(self, console: Console, context: Context) -> None:
         self.game_map.progress_redraw_all_transition()
         self.game_map.render(console, self.time_of_day)
+        # screen_section = self.game_map.get_screen_section(screen.height, screen.width, screen.pos
+        # screen.render(screen_section)
 
-        for entity in self.intelligent_entities:
-            if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:
-                if entity.name in maps.entity_overview_map:
-                    if not self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]:
-                        continue
+        # for entity in self.intelligent_entities:
+        #     if self.game_map.tiles[entity.y][entity.x].explored or not self.settings["show-fog"]:
+        #         if entity.name in maps.entity_overview_map:
+        #             if not self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]:
+        #                 continue
 
-                if (isinstance(entity, rbt.Rabbit) and entity.asleep):
-                    continue
+        #         if (isinstance(entity, rbt.Rabbit) and entity.asleep):
+        #             continue
 
-                console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+        #         console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
-        if self.selected_entity != None:
-            entity = self.selected_entity
+        # if self.selected_entity != None:
+        #     entity = self.selected_entity
 
-            if not isinstance(entity, rbt.Burrow) and not isinstance(entity, bb.BerryBush) and not isinstance(entity, cp.Camp):
-                render_selected = True
+        #     if not isinstance(entity, rbt.Burrow) and not isinstance(entity, bb.BerryBush) and not isinstance(entity, cp.Camp):
+        #         render_selected = True
 
-                if entity.name in maps.entity_overview_map:
-                    render_selected = self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]
+        #         if entity.name in maps.entity_overview_map:
+        #             render_selected = self.settings["entity-visibility"][maps.entity_overview_map[entity.name]]
 
-                if render_selected:
-                    console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
+        #         if render_selected:
+        #             console.print(entity.x, entity.y, entity.char, fg=entity.color, bg=entity.bg_color)
 
         if self.settings["show-ui"]:
             self.stats_panel.render(console)

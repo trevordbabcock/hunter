@@ -87,6 +87,7 @@ class GameMap:
         return dest
 
     def render(self, console, time_of_day):
+        # DO NOT MERGE take smaller section of map here??
         indices = np.argwhere(self.redraw_matrix>0)
 
         for y, x in indices:
